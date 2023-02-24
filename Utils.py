@@ -253,7 +253,7 @@ def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,de
         mask_out,
         mask_loop,
     ]
-  def read_dropna_encode_dataframe(file_name: str, le: preprocessing.LabelEncoder, fit: bool) -> pd.DataFrame:
+def read_dropna_encode_dataframe(file_name: str, le: preprocessing.LabelEncoder, fit: bool) -> pd.DataFrame:
     """
     Reads a pandas DataFrame from a pickle file, removes rows with NaN values and those with a gold_label of '-',
     encodes the gold_label column using a LabelEncoder object and returns the resulting DataFrame.
@@ -290,7 +290,7 @@ def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,de
     
     # return the resulting DataFrame
     return df
-  def encode_gold_labels(df: pd.DataFrame, le: preprocessing.LabelEncoder) -> torch.Tensor:
+def encode_gold_labels(df: pd.DataFrame, le: preprocessing.LabelEncoder) -> torch.Tensor:
     """
     Encodes the gold_label column of a pandas DataFrame using a LabelEncoder object and returns a one-hot encoded tensor.
     
