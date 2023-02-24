@@ -5,6 +5,8 @@ import torch.nn.functional as F
 from typing import List, Dict, Tuple
 from sklearn import preprocessing
 import torch.autograd as autograd
+from typing import Any
+
 def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, w_c_to_idx, c_c_to_idx, dep_lb_to_idx):
     # Initialize variables
     dep_head = []
