@@ -12,6 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Tuple, List, Callable, Optional
 from torch import FloatTensor, LongTensor
 from typing import List, Any, Iterable
+from torch.autograd import Variable
 
 def masked_softmax(vector: torch.Tensor,
                    mask: torch.Tensor,
