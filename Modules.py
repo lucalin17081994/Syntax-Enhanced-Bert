@@ -704,7 +704,7 @@ class CA_Hesyfu(nn.Module):
 
     def get_bert_output(self, lengths1, lengths2, plain_sentences1, plain_sentences2, input_ids, attention_mask, bert_tokenized_sentences):
         # Get BERT embeddings for all sentences in the batch
-        bert_last_vectors = self.bert(input_ids, attention_mask=attention_mask)[0].to(device) 
+        bert_last_vectors = self.bert(input_ids, attention_mask=attention_mask)[0].to(self.device) 
         batch_size = bert_last_vectors.shape[0]
 
         # Find the maximum sequence length for each sentence in the batch
@@ -712,8 +712,8 @@ class CA_Hesyfu(nn.Module):
         max_seq_len2 = torch.max(lengths2)
 
         # Initialize empty tensors to store BERT embeddings for each sentence
-        bert_embs1 = torch.zeros((batch_size, max_seq_len1, 768)).to(device)
-        bert_embs2 = torch.zeros((batch_size, max_seq_len2, 768)).to(device)
+        bert_embs1 = torch.zeros((batch_size, max_seq_len1, 768)).to(self.device)
+        bert_embs2 = torch.zeros((batch_size, max_seq_len2, 768)).to(self.device)
 
         # Loop over all sentences in the batch and extract BERT embeddings
         for s in range(batch_size):
