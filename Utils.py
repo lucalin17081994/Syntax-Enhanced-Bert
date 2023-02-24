@@ -6,6 +6,7 @@ from typing import List, Dict, Tuple
 from sklearn import preprocessing
 import torch.autograd as autograd
 from typing import Any
+from torch.optim.lr_scheduler import LambdaLR
 
 def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, w_c_to_idx, c_c_to_idx, dep_lb_to_idx):
     # Initialize variables
@@ -375,3 +376,35 @@ def eval_model(model, dataloader, loss_fn, device):
             losses.append(loss_batch)
             accuracies.append(accuracy_batch)
     return np.mean(losses), np.mean(accuracies)
+def count_parameters(model):
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    num_params = sum([np.prod(p.size()) for p in model_parameters])
+    print("Total parameters =", num_params)
+    return num_params
+class WarmupLinearSchedule(LambdaLR):
+    """ Linear warmup and then linear decay.
+        Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
+        Linearly decreases learning rate from 1. to 0. over remaining `t_total - warmup_steps` steps.
+    """
+    def __init__(self, optimizer, warmup_steps, t_total, last_epoch=-1):
+        self.warmup_steps = warmup_steps
+        self.t_total = t_total
+        super(WarmupLinearSchedule, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
+
+    def lr_lambda(self, step):
+        if step < self.warmup_steps:
+            return float(step) / float(max(1, self.warmup_steps))
+        return max(0.0, float(self.t_total - step) / float(max(1.0, self.t_total - self.warmup_steps)))
+def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb):
+    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
+    val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device)
+    wandb.log({
+        'train_losses': np.mean(train_losses),
+        'train_accuracies': np.mean(train_accuracies),
+        'val_loss': val_loss.item(),
+        'val_accuracy': val_accuracy.item(),
+        'val_loss_hard': val_loss_hard,
+        'val_acc_hard': val_accuracy_hard,
+        'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
+        'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
+    })
