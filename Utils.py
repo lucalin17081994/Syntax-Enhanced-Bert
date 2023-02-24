@@ -132,7 +132,7 @@ def read_data_pandas(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_l
 
     return data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
 import torch.autograd as autograd
-get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,device):
+def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,device):
     node1_index = [[word[1] for word in sent] for sent in batch]
     node2_index = [[word[2] for word in sent] for sent in batch]
     label_index = [[word[0] for word in sent] for sent in batch]
