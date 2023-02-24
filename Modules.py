@@ -49,7 +49,38 @@ def masked_softmax(vector: torch.Tensor,
             masked_vector = vector.masked_fill((1 - mask).to(dtype=torch.bool), mask_fill_value)
             result = torch.nn.functional.softmax(masked_vector, dim=dim)
     return result
-  
+
+class Attn(nn.Module):
+    def __init__(self, out_size, attn_size):
+        super(Attn, self).__init__()
+
+        self.W = nn.Parameter(torch.Tensor(out_size, out_size))
+
+        self.Wv = nn.Parameter(torch.Tensor(out_size, attn_size))
+        self.Wq = nn.Parameter(torch.Tensor(out_size, attn_size))
+
+        nn.init.xavier_uniform_(self.Wv, gain=nn.init.calculate_gain('tanh'))
+        nn.init.xavier_uniform_(self.Wq, gain=nn.init.calculate_gain('tanh'))
+        
+        self.w_hv = nn.Parameter(torch.Tensor(attn_size, 1))
+        self.w_hq = nn.Parameter(torch.Tensor(attn_size, 1))
+        nn.init.xavier_uniform_(self.w_hv, gain=nn.init.calculate_gain('linear'))
+        nn.init.xavier_uniform_(self.w_hq, gain=nn.init.calculate_gain('linear'))
+
+    def forward(self, seq_features1, seq_features2, mask1, mask2):
+        C = torch.tanh(torch.matmul(torch.matmul(seq_features1, self.W), torch.transpose(seq_features2, 1, 2)))
+
+        Hv = torch.tanh(torch.matmul(seq_features1, self.Wv) + torch.matmul(C, torch.matmul(seq_features2, self.Wq)))
+        Hq = torch.tanh(torch.matmul(seq_features2, self.Wq) + torch.matmul(torch.transpose(C, 1, 2), torch.matmul(seq_features1, self.Wv)))
+
+        attn_v = masked_softmax(torch.matmul(Hv, self.w_hv).squeeze(), mask1, 1)
+        attn_q = masked_softmax(torch.matmul(Hq, self.w_hq).squeeze(), mask2, 1)
+
+        v_hat = torch.sum(torch.unsqueeze(attn_v, 2) * seq_features1, 1)
+        q_hat = torch.sum(torch.unsqueeze(attn_q, 2) * seq_features2, 1)
+        #print(v_hat.shape,q_hat.shape)
+        return v_hat, q_hat
+      
 class ConstGCN(nn.Module):
   def __init__(
             self,
