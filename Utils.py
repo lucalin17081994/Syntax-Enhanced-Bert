@@ -376,7 +376,7 @@ def read_dropna_encode_dataframe(file_name, le, fit, is_hans=False, is_mnli=Fals
 
     # Encode the gold labels using the label encoder and convert to list
     labels = encode_gold_labels(df, le)
-    df['gold_label'] = labels
+    df['gold_label'] = labels.tolist()
 
     return df
 def encode_gold_labels(df: pd.DataFrame, le: preprocessing.LabelEncoder) -> torch.Tensor:
