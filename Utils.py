@@ -86,11 +86,56 @@ def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, 
 
     # Return relevant information
     return text, dep_head, dep_lb, word_to_constituents, constituents_to_constituents, curr_num, w_c_to_idx, c_c_to_idx, dep_lb_to_idx
-def read_data_pandas(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict, premises_dict: dict) -> Tuple[List[List[Any]], dict, dict, dict, dict]:
+def read_data_pandas(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict) -> Tuple[List[List[Any]], dict, dict, dict]:
     """
     Reads in a pandas DataFrame containing data, and extracts features from the data using the `get_sentence_features`
     function. The features are stored in a list of lists, which is returned along with updated dictionaries containing
     word-to-index, constituent-to-index, and dependency label-to-index mappings.
+
+    Args:
+        data_file (pandas.DataFrame): A pandas DataFrame containing the data to be processed.
+        w_c_to_idx (Dict[str, int]): A dictionary mapping words to their corresponding indices.
+        c_c_to_idx (Dict[str, int]): A dictionary mapping constituents to their corresponding indices.
+        dep_lb_to_idx (Dict[str, int]): A dictionary mapping dependency labels to their corresponding indices.
+
+    Returns:
+        A tuple containing the processed data, updated word-to-index, constituent-to-index, and dependency-label-to-index mappings.
+    """
+    data = []
+    
+    for i in range(len(df)):
+        
+        # get the current line of df
+        line = df.iloc[i]
+
+        # get features for the first sentence
+        text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1, curr_num1, \
+            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
+                line, 'text_sentence1', 'sentence1_parse', 'heads_sentence1', 'deprel_sentence1',
+                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
+
+        # get features for the second sentence
+        text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2, curr_num2, \
+            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
+                line, 'text_sentence2', 'sentence2_parse', 'heads_sentence2', 'deprel_sentence2',
+                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
+        
+        # get the gold label for the line
+        label = line['gold_label']
+      
+        # add the line's data to the data list
+        data.append([
+            label, text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1,
+            curr_num1 - 500, text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2,
+            curr_num2 - 500])
+
+    return data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx
+def read_data_pandas_snli(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict, premises_dict: dict) -> Tuple[List[List[Any]], dict, dict, dict, dict]:
+    """
+    Reads in a pandas DataFrame containing data, and extracts features from the data using the `get_sentence_features`
+    function. The features are stored in a list of lists, which is returned along with updated dictionaries containing
+    word-to-index, constituent-to-index, and dependency label-to-index mappings. For SNLI, premise features are stored
+    in a dict for efficiency.
 
     Args:
         data_file (pandas.DataFrame): A pandas DataFrame containing the data to be processed.
