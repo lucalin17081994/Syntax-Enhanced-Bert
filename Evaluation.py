@@ -83,12 +83,12 @@ def get_preds_from_logits(logits, add_contradiction_and_neutral):
         preds = [torch.argmax(x, dim=1).tolist() for x in logits]
         preds = [item for sublist in preds for item in sublist]
     return preds
-  def pickle_predictions(file_name, preds):
-      with open(file_name, "wb") as fp:   #Pickling
-         pickle.dump(preds, fp)
-  def get_pickled_predictions(file_name):
-      with open(file_name, "rb") as fp:   # Unpickling
-          return pickle.load(fp)
+def pickle_predictions(file_name, preds):
+    with open(file_name, "wb") as fp:   #Pickling
+        pickle.dump(preds, fp)
+def get_pickled_predictions(file_name):
+    with open(file_name, "rb") as fp:   # Unpickling
+        return pickle.load(fp)
 
 def analyze_upward_cases(df):
     accuracies = []
