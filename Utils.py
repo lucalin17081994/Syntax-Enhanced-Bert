@@ -375,7 +375,7 @@ def read_dropna_encode_dataframe(file_name, le, fit, is_hans=False, is_mnli=Fals
         df['gold_label'] = df['gold_label'].map({1: 'neutral', 0: 'entailment', 2: 'contradiction'})
 
     # Encode the gold labels using the label encoder and convert to list
-    labels = one_hot_encode_df(df, le).tolist()
+    labels = encode_gold_labels(df, le)
     df['gold_label'] = labels
 
     return df
