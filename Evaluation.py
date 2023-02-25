@@ -190,3 +190,92 @@ def get_hans_results_subcases(file_name):
                 results_nonentailment.append(subcase_list)
     # Return the results for entailment and neutral examples as separate lists
     return results_entailment, results_nonentailment
+def eval_batch(model, data_batch, loss_fn, device):
+    sentence1_data, sentence2_data, labels, input_ids, attention_mask, bert_tokenized_sentences = data_batch
+    out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    loss = loss_fn(out, labels)
+    accuracy_batch = compute_accuracy_batch(out, labels)
+    return loss.item(), accuracy_batch
+
+
+def eval_model(model, dataloader, loss_fn, device):
+    model.eval()
+    losses, accuracies = [], []
+    with torch.no_grad():
+        for batch in dataloader:
+            loss_batch, accuracy_batch = eval_batch(model, batch, loss_fn, device)
+            losses.append(loss_batch)
+            accuracies.append(accuracy_batch)
+    return np.mean(losses), np.mean(accuracies)
+
+def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb):
+    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
+    val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device)
+    wandb.log({
+        'train_losses': np.mean(train_losses),
+        'train_accuracies': np.mean(train_accuracies),
+        'val_loss': val_loss.item(),
+        'val_accuracy': val_accuracy.item(),
+        'val_loss_hard': val_loss_hard,
+        'val_acc_hard': val_accuracy_hard,
+        'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
+        'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
+    })
+
+def eval_batch_store_preds(model, data_batch, loss_fn, device, is_syntax_enhanced):
+    """
+    Evaluates a batch of data and stores the model's predictions.
+
+    Args:
+        model: A PyTorch model to evaluate.
+        data_batch: A tuple containing the data batch to evaluate.
+        loss_fn: A PyTorch loss function to use for evaluation.
+        device: The device to use for evaluation (e.g., "cpu" or "cuda").
+        is_syntax_enhanced: A boolean indicating whether to use the syntax-enhanced model.
+
+    Returns:
+        A tuple containing the loss, accuracy, and model predictions.
+    """
+    # Unpack data batch
+    sentence1_data, sentence2_data, labels, input_ids, attention_mask, bert_tokenized_sentences = data_batch
+
+    # Call model with appropriate arguments
+    if is_syntax_enhanced:
+        out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    else:
+        out = model(input_ids, attention_mask).logits
+    loss = loss_fn(out, labels)
+    accuracy_batch = compute_accuracy_batch(out, labels)
+
+    return loss.item(), accuracy_batch, out
+def eval_model_store_preds(model, dataloader, loss_fn, device, is_syntax_enhanced=False):
+    """
+    Evaluates a PyTorch model on a given DataLoader and stores the model's predictions.
+
+    Args:
+        model: A PyTorch model to evaluate.
+        dataloader: A PyTorch DataLoader object containing the data to evaluate.
+        loss_fn: A PyTorch loss function to use for evaluation.
+        device: The device to use for evaluation (e.g., "cpu" or "cuda").
+        is_syntax_enhanced: A boolean indicating whether to use the syntax-enhanced model (default False).
+
+    Returns:
+        A tuple containing the mean loss, mean accuracy, and all model predictions.
+    """
+    # Set model to evaluation mode
+    model.eval()
+
+    # Initialize losses, accuracies, and predictions
+    losses, accuracies = [], []
+    preds = []
+
+    # Evaluate each batch in the DataLoader
+    with torch.no_grad():
+        for batch in dataloader:
+            loss_batch, accuracy_batch, batch_preds = eval_batch_store_preds(model, batch, loss_fn, device, is_syntax_enhanced)
+            preds.append(batch_preds)
+            losses.append(loss_batch)
+            accuracies.append(accuracy_batch)
+
+    # Return mean loss, mean accuracy, and all predictions
+    return np.mean(losses), np.mean(accuracies), preds
