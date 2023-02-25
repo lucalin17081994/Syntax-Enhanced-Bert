@@ -456,11 +456,6 @@ def eval_model(model, dataloader, loss_fn, device):
             losses.append(loss_batch)
             accuracies.append(accuracy_batch)
     return np.mean(losses), np.mean(accuracies)
-def count_parameters(model):
-    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    num_params = sum([np.prod(p.size()) for p in model_parameters])
-    print("Total parameters =", num_params)
-    return num_params
 
 def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb):
     val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
