@@ -69,12 +69,13 @@ def med_results_linguistic_phenomena(model_name, df, preds, true):
                               for item in sublist]
     
     return results
-# def get_accuracy(preds, true):
-#     return ((np.asarray(preds) == np.asarray(true)).mean() * 100)
 def get_accuracy(preds, true):
-  preds=np.asarray(preds)
-  true=np.asarray(true)
-  return (preds==true).mean()*100
+    print(f"preds: {preds} ({type(preds)}), true: {true} ({type(true)})")
+    return ((np.asarray(preds) == np.asarray(true)).mean() * 100)
+# def get_accuracy(preds, true):
+#   preds=np.asarray(preds)
+#   true=np.asarray(true)
+#   return (preds==true).mean()*100
 
 def get_preds_from_logits(logits, add_contradiction_and_neutral):
 
