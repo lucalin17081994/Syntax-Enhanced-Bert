@@ -148,3 +148,45 @@ def get_model_results_snli_mnli(model_name, true_snli_test, true_snli_test_hard,
     results.append(get_accuracy(get_pickled_predictions(model_name + '_preds_mnli_m.pickle'), true_mnli_m))
     results.append(get_accuracy(get_pickled_predictions(model_name + '_preds_mnli_mm.pickle'), true_mnli_mm))
     return results
+def get_hans_results_subcases(file_name):
+    # Load the HANS validation dataset
+    df_hans = pd.read_pickle('HANS_val_original.pickle')
+    # Load the predicted labels
+    df_hans['preds'] = get_pickled_predictions(file_name)
+    # Add the true labels to the dataframe
+    df_hans['true_label'] = true_hans
+
+    # Group the HANS dataset by heuristic and subcase
+    heuristics_subcases = df_hans.groupby('heuristic')['subcase'].unique()
+
+    # Get separate dataframes for entailment and neutral examples
+    df_hans_entailment = df_hans[df_hans['true_label'] ==1]
+    df_hans_neutral = df_hans[df_hans['true_label'] ==2]
+
+    # Initialize lists to store the results for entailment and neutral examples
+    results_entailment, results_nonentailment = [],[]
+
+    # Loop over the subcases of each heuristic
+    for heuristic in heuristics_subcases:
+        for subcase in heuristic:
+            subcase_list = [subcase]
+            # Get the subset of the dataset corresponding to the current subcase and entailment
+            df_subcase_entailment = df_hans_entailment[df_hans_entailment['subcase'] == subcase]
+            # Get the subset of the dataset corresponding to the current subcase and neutral
+            df_subcase_nonentailment = df_hans_neutral[df_hans_neutral['subcase'] == subcase]
+            # If there are any examples in the entailment subset, compute the accuracy and add it to the results
+            if len(df_subcase_entailment) > 0:
+                preds = df_subcase_entailment['preds']
+                true = df_subcase_entailment['true_label']
+                accuracy_subcase = get_accuracy(preds, true)
+                subcase_list.append(accuracy_subcase)
+                results_entailment.append(subcase_list)
+            # If there are any examples in the neutral subset, compute the accuracy and add it to the results
+            if len(df_subcase_nonentailment) > 0:
+                preds = df_subcase_nonentailment['preds']
+                true = df_subcase_nonentailment['true_label']
+                accuracy_subcase = get_accuracy(preds, true)
+                subcase_list.append(accuracy_subcase)
+                results_nonentailment.append(subcase_list)
+    # Return the results for entailment and neutral examples as separate lists
+    return results_entailment, results_nonentailment
