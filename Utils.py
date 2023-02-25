@@ -489,3 +489,61 @@ class WarmupLinearSchedule(LambdaLR):
         if step < self.warmup_steps:
             return float(step) / float(max(1, self.warmup_steps))
         return max(0.0, float(self.t_total - step) / float(max(1.0, self.t_total - self.warmup_steps)))
+
+def eval_batch_store_preds(model, data_batch, loss_fn, device, is_syntax_enhanced):
+    """
+    Evaluates a batch of data and stores the model's predictions.
+
+    Args:
+        model: A PyTorch model to evaluate.
+        data_batch: A tuple containing the data batch to evaluate.
+        loss_fn: A PyTorch loss function to use for evaluation.
+        device: The device to use for evaluation (e.g., "cpu" or "cuda").
+        is_syntax_enhanced: A boolean indicating whether to use the syntax-enhanced model.
+
+    Returns:
+        A tuple containing the loss, accuracy, and model predictions.
+    """
+    # Unpack data batch
+    sentence1_data, sentence2_data, labels, input_ids, attention_mask, bert_tokenized_sentences = data_batch
+
+    # Call model with appropriate arguments
+    if is_syntax_enhanced:
+        out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    else:
+        out = model(input_ids, attention_mask).logits
+    loss = loss_fn(out, labels)
+    accuracy_batch = compute_accuracy_batch(out, labels)
+
+    return loss.item(), accuracy_batch, out
+def eval_model_store_preds(model, dataloader, loss_fn, device, is_syntax_enhanced=False):
+    """
+    Evaluates a PyTorch model on a given DataLoader and stores the model's predictions.
+
+    Args:
+        model: A PyTorch model to evaluate.
+        dataloader: A PyTorch DataLoader object containing the data to evaluate.
+        loss_fn: A PyTorch loss function to use for evaluation.
+        device: The device to use for evaluation (e.g., "cpu" or "cuda").
+        is_syntax_enhanced: A boolean indicating whether to use the syntax-enhanced model (default False).
+
+    Returns:
+        A tuple containing the mean loss, mean accuracy, and all model predictions.
+    """
+    # Set model to evaluation mode
+    model.eval()
+
+    # Initialize losses, accuracies, and predictions
+    losses, accuracies = [], []
+    preds = []
+
+    # Evaluate each batch in the DataLoader
+    with torch.no_grad():
+        for batch in dataloader:
+            loss_batch, accuracy_batch, batch_preds = eval_batch_store_preds(model, batch, loss_fn, device, is_syntax_enhanced)
+            preds.append(batch_preds)
+            losses.append(loss_batch)
+            accuracies.append(accuracy_batch)
+
+    # Return mean loss, mean accuracy, and all predictions
+    return np.mean(losses), np.mean(accuracies), preds
