@@ -262,42 +262,77 @@ def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,de
         mask_out,
         mask_loop,
     ]
-def read_dropna_encode_dataframe(file_name: str, le: preprocessing.LabelEncoder, fit: bool) -> pd.DataFrame:
-    """
-    Reads a pandas DataFrame from a pickle file, removes rows with NaN values and those with a gold_label of '-',
-    encodes the gold_label column using a LabelEncoder object and returns the resulting DataFrame.
+# def read_dropna_encode_dataframe(file_name: str, le: preprocessing.LabelEncoder, fit: bool) -> pd.DataFrame:
+#     """
+#     Reads a pandas DataFrame from a pickle file, removes rows with NaN values and those with a gold_label of '-',
+#     encodes the gold_label column using a LabelEncoder object and returns the resulting DataFrame.
     
-    Parameters:
-    -----------
-    file_name: str
-        The name of the pickle file to read the DataFrame from.
-    le: sklearn.preprocessing.LabelEncoder
-        A LabelEncoder object used to encode the gold_label column.
-    fit: bool
-        If True, fits the LabelEncoder on the gold_label column before encoding it. 
+#     Parameters:
+#     -----------
+#     file_name: str
+#         The name of the pickle file to read the DataFrame from.
+#     le: sklearn.preprocessing.LabelEncoder
+#         A LabelEncoder object used to encode the gold_label column.
+#     fit: bool
+#         If True, fits the LabelEncoder on the gold_label column before encoding it. 
         
+#     Returns:
+#     --------
+#     df: pd.DataFrame
+#         The resulting DataFrame with the encoded gold_label column.
+#     """
+#     # read the DataFrame from the pickle file
+#     df = pd.read_pickle(file_name)
+    
+#     # remove rows with NaN values and gold_label of '-'
+#     df = df.dropna()
+#     df = df[df.gold_label != '-']
+    
+#     # fit and transform the gold_label column if requested
+#     if fit:
+#         le.fit(list(df['gold_label']))
+        
+#     labels = encode_gold_labels(df, le)
+    
+#     # replace the original gold_label column with the encoded one
+#     df['gold_label'] = labels.tolist()
+    
+#     # return the resulting DataFrame
+#     return df
+def read_dropna_encode_dataframe(file_name, le, fit, is_hans=False, is_mnli=False):
+    """
+    Reads a pandas dataframe from a pickle file, drops rows with missing values, and encodes the gold labels.
+    
+    Args:
+    - file_name (str): name of the pickle file to read the dataframe from
+    - le (sklearn.preprocessing.LabelEncoder): a label encoder object to encode the gold labels
+    - fit (bool): whether to fit the label encoder to the gold labels
+    - is_hans (bool): whether the gold labels should be converted to a binary classification of HANS format
+    - is_mnli (bool): whether the gold labels should be converted to a three-class classification of MNLI format
+    
     Returns:
-    --------
-    df: pd.DataFrame
-        The resulting DataFrame with the encoded gold_label column.
+    - df (pandas.DataFrame): the encoded dataframe
+    
     """
-    # read the DataFrame from the pickle file
-    df = pd.read_pickle(file_name)
-    
-    # remove rows with NaN values and gold_label of '-'
-    df = df.dropna()
-    df = df[df.gold_label != '-']
-    
-    # fit and transform the gold_label column if requested
+    # Read the dataframe from the pickle file, drop rows with missing values, and filter out invalid gold labels
+    df = pd.read_pickle(file_name).dropna().query('gold_label != "-"')
+
+    # Fit the label encoder to the gold labels, if requested
     if fit:
-        le.fit(list(df['gold_label']))
-        
-    labels = encode_gold_labels(df, le)
-    
-    # replace the original gold_label column with the encoded one
-    df['gold_label'] = labels.tolist()
-    
-    # return the resulting DataFrame
+        le.fit(df['gold_label'])
+
+    # Convert the gold labels to binary classification of HANS format, if requested
+    if is_hans:
+        df['gold_label'] = df['gold_label'].map({1: 'neutral', 0: 'entailment'})
+
+    # Convert the gold labels to three-class classification of MNLI format, if requested
+    if is_mnli:
+        df['gold_label'] = df['gold_label'].map({1: 'neutral', 0: 'entailment', 2: 'contradiction'})
+
+    # Encode the gold labels using the label encoder and convert to list
+    labels = one_hot_encode_df(df, le).tolist()
+    df['gold_label'] = labels
+
     return df
 def encode_gold_labels(df: pd.DataFrame, le: preprocessing.LabelEncoder) -> torch.Tensor:
     """
