@@ -70,7 +70,8 @@ def med_results_linguistic_phenomena(model_name, df, preds, true):
     
     return results
 def get_accuracy(preds, true):
-    print(f"preds: {preds} ({type(preds)}), true: {true} ({type(true)})")
+    print(f"preds: ({type(preds)}), true: ({type(true)})")
+    print((np.asarray(preds) == np.asarray(true))
     return ((np.asarray(preds) == np.asarray(true)).mean() * 100)
 # def get_accuracy(preds, true):
 #   preds=np.asarray(preds)
