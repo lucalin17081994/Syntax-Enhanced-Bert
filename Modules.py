@@ -737,3 +737,19 @@ class CA_Hesyfu(nn.Module):
 
         return bert_embs1, bert_embs2
 
+def initialize_model(gcn_dim, L, dep_lb_to_idx, w_c_to_idx, c_c_to_idx, device, use_constGCN=True, use_depGCN=True):
+    model_name = ''
+    if use_constGCN and use_depGCN:
+        model_name = 'cahesyfu'
+    elif use_constGCN:
+        model_name = 'constGCN'
+    else:
+        model_name = 'depGCN'
+    print(f'model name: {model_name}')
+
+    model = CA_Hesyfu(gcn_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, 
+                      use_constGCN=use_constGCN, use_depGCN=use_depGCN)
+
+    count_parameters(model)
+    
+    return model, model_name
