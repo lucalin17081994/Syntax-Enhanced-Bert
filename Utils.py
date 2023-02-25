@@ -409,35 +409,6 @@ def encode_gold_labels(df: pd.DataFrame, le: preprocessing.LabelEncoder) -> torc
     
     # return the resulting tensor
     return encoded_labels
-def compute_accuracy_batch(prediction, target):
-    y_pred = torch.argmax(prediction, dim=1)
-    y_target = torch.argmax(target, dim=1)
-    return (y_pred == y_target).float().mean().item()
-
-def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device):
-    model.train()
-    
-    # Unpack data
-    sentence1_data, sentence2_data, labels, input_ids, attention_mask, bert_tokenized_sentences = data_batch
-    
-    # Forward pass
-    out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
-    
-    # Backward pass and optimization
-    optimizer.zero_grad()
-    optimizer_other.zero_grad()
-    loss = loss_fn(out, labels)
-    loss.backward()
-    torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-    optimizer.step()
-    scheduler.step()
-    optimizer_other.step()
-    # scheduler_other.step()
-    
-    # Compute accuracy
-    accuracy_batch = compute_accuracy_batch(out, labels)
-    
-    return loss.cpu().detach().numpy(), accuracy_batch
 
 
 class WarmupLinearSchedule(LambdaLR):
