@@ -753,3 +753,8 @@ def initialize_model(gcn_dim, L, dep_lb_to_idx, w_c_to_idx, c_c_to_idx, device, 
     count_parameters(model)
     
     return model, model_name
+def count_parameters(model):
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    num_params = sum([np.prod(p.size()) for p in model_parameters])
+    print("Total parameters =", num_params)
+    return num_params
