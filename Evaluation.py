@@ -79,7 +79,11 @@ def get_accuracy(preds, true):
 #     return (preds==true).mean()*100
 
 def get_preds_from_logits(logits, add_contradiction_and_neutral):
-
+    '''
+    Translate raw logits to predictions by taking highest value
+    Parameter:
+        add_contradiction_and_neutral: boolean indicating whether to add index 0 and 2 for HANS and MED datasets.
+    '''
     if add_contradiction_and_neutral:
         m = nn.Softmax(dim=0)
         flattened = [m(item) for sublist in logits for item in sublist]
