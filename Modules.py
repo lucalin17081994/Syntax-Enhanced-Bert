@@ -487,7 +487,12 @@ class DepGCN(nn.Module):
         #val_sum=val_us
         r = self.dep_attn(val_sum) # dep_attn = W^d1
 
-        p = torch.bmm(r, val_us.transpose(2, 3)).squeeze(3) #p=z
+#         p = torch.bmm(r, val_us.transpose(2, 3)).squeeze(3) #p=z
+#         mask = (dep_mat == 0).float() * (-1e30) #very low values for no arcs relationships
+#         p = p + mask 
+#         p = torch.softmax(p, dim=2)# no arcs will be very low values
+#         p_us = p.unsqueeze(3).repeat(1, 1, 1, feat_dim)
+        p = torch.sum(r, dim=-1) #p=z
         mask = (dep_mat == 0).float() * (-1e30) #very low values for no arcs relationships
         p = p + mask 
         p = torch.softmax(p, dim=2)# no arcs will be very low values
