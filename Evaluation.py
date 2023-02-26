@@ -158,13 +158,13 @@ def get_model_results_snli_mnli(model_name, true_snli_test, true_snli_test_hard,
     results.append(get_accuracy(get_pickled_predictions(model_name + '_preds_mnli_m.pickle'), true_mnli_m))
     results.append(get_accuracy(get_pickled_predictions(model_name + '_preds_mnli_mm.pickle'), true_mnli_mm))
     return results
-def get_hans_results_subcases(file_name):
+def get_hans_results_subcases(original,preds,true ):
     # Load the HANS validation dataset
-    df_hans = pd.read_pickle('HANS_val_original.pickle')
+    df_hans = pd.read_pickle(original)
     # Load the predicted labels
-    df_hans['preds'] = get_pickled_predictions(file_name)
+    df_hans['preds'] = get_pickled_predictions(preds)
     # Add the true labels to the dataframe
-    df_hans['true_label'] = true_hans
+    df_hans['true_label'] = true
 
     # Group the HANS dataset by heuristic and subcase
     heuristics_subcases = df_hans.groupby('heuristic')['subcase'].unique()
