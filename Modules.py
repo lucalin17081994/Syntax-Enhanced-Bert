@@ -517,7 +517,7 @@ class Hesyfu(nn.Module):
         if self.use_constGCN:
             self.const_gcn = ConstGCN(hidden_dim, w_c_vocab_size,
                                        c_c_vocab_size, nn.ReLU())
-
+#         if self.use_depGCN:
         self.dep_gcn = DepGCN(dep_tag_vocab_size, hidden_dim,
                                hidden_dim, hidden_dim)
         self.gate = nn.Sigmoid()
@@ -653,10 +653,11 @@ class CA_Hesyfu(nn.Module):
 
         # Pass sentences through GCN's
         gcn_in1, gcn_in2 = bert_embs1, bert_embs2
-        for hesyfu in self.hesyfu_layers:
-            gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
-            gcn_in1, gcn_in2 = gcn_out1, gcn_out2
-
+#         for hesyfu in self.hesyfu_layers:
+#             gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
+#             gcn_in1, gcn_in2 = gcn_out1, gcn_out2
+        
+        gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
         # Pass sentences through co-attention layer
         data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_batch1, mask_batch2)
 
