@@ -657,7 +657,7 @@ class CA_Hesyfu(nn.Module):
 #             gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
 #             gcn_in1, gcn_in2 = gcn_out1, gcn_out2
         
-        gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
+        gcn_out1, gcn_out2 = self.hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
         # Pass sentences through co-attention layer
         data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_batch1, mask_batch2)
 
