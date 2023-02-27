@@ -628,7 +628,7 @@ class CA_Hesyfu(nn.Module):
 #                 self.device
 #             )
 #             self.hesyfu_layers.append(hesyfu)
-        hesyfu = Hesyfu(
+        self.hesyfu = Hesyfu(
                     hidden_dim,
                     dep_tag_vocab_size,
                     w_c_vocab_size,
