@@ -43,38 +43,8 @@ def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, 
         stack_const.append(const)
         curr_num += 1
 
-        # If current constituent has a closing parenthesis, process it
-#         if constituency.find(')') > -1:
-#             # Pop current constituent from stack
-#             num = stack_num.pop()
-#             const = stack_const.pop()
-
-#             # If constituent is not ROOT, add it to word-to-constituents arcs
-#             if const != "ROOT":
-#                 if const not in w_c_to_idx:
-#                     w_c_to_idx[const] = len(w_c_to_idx)
-#                 word_to_constituents.append([w_c_to_idx[const], j, num, 1])
-
-#             # If there are more constituents on the stack, add constituents-to-constituents arcs
-#             if len(stack_num) != 0:
-#                 # Add constituents-to-constituents arc from super to sub constituent
-#                 if stack_const[-1] != "ROOT":
-#                     if stack_const[-1] not in c_c_to_idx:
-#                         c_c_to_idx[stack_const[-1]] = len(c_c_to_idx)
-#                     constituents_to_constituents.append([c_c_to_idx[stack_const[-1]], stack_num[-1], num, 0])
-
-#                     # Update children dictionary for super constituent
-#                     if stack_const[-1] not in children:
-#                         children[stack_const[-1]] = [const]
-#                     else:
-#                         children[stack_const[-1]].append(const)
-
-#                 # Add constituents-to-constituents arc from sub to super constituent
-#                 if const != "ROOT":
-#                     if const not in c_c_to_idx:
-#                         c_c_to_idx[const] = len(c_c_to_idx)
-#                     constituents_to_constituents.append([c_c_to_idx[const], num, stack_num[-1], 1])
-         if constituency.find(')') >-1:
+        
+        if constituency.find(')') >-1:
             for c in constituency:
               if c == ")":
                 num = stack_num.pop()
