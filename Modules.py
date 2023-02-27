@@ -567,12 +567,12 @@ class Hesyfu(nn.Module):
         # gating
         if self.use_constGCN and self.use_depGCN:
             gate1 = self.gate(dep_gcn_out1 + const_gcn_out1) # changed from concat to elementwise addition
-            all_one1 = torch.ones((b1, t1, gate1.shape[-1]), device=self.device, requires_grad=False)
+            all_one1 = torch.zeros((b1, t1, gate1.shape[-1]), device=self.device, requires_grad=False)
             hesyfu_out_sentence1 = gate1 * dep_gcn_out1 + (all_one1 - gate1) * const_gcn_out1
             hesyfu_out_sentence1 = self.dropout(hesyfu_out_sentence1)
 
             gate2 = self.gate(dep_gcn_out2 + const_gcn_out2) # changed from concat to elementwise addition
-            all_one2 = torch.ones((b2, t2, gate2.shape[-1]), device=self.device, requires_grad=False)
+            all_one2 = torch.zeros((b2, t2, gate2.shape[-1]), device=self.device, requires_grad=False)
             hesyfu_out_sentence2 = gate2 * dep_gcn_out2 + (all_one2 - gate2) * const_gcn_out2
             hesyfu_out_sentence2 = self.dropout(hesyfu_out_sentence2)
             return hesyfu_out_sentence1, hesyfu_out_sentence2
