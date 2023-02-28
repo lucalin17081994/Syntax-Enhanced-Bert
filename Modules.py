@@ -653,7 +653,7 @@ class CA_Hesyfu(nn.Module):
                                                       input_ids, attention_mask, bert_tokenized_sentences)
 
         # Pass sentences through GCN's
-#         gcn_in1, gcn_in2 = bert_embs1, bert_embs2
+        gcn_in1, gcn_in2 = bert_embs1, bert_embs2
         for hesyfu in self.hesyfu_layers:
             gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
             gcn_in1, gcn_in2 = gcn_out1, gcn_out2
