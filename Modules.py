@@ -617,7 +617,7 @@ class CA_Hesyfu(nn.Module):
         self.bert = BertModel.from_pretrained("bert-base-uncased")
         
         # Hesyfu
-        self.hesyfu_layers = nn.ModuleList()
+#         self.hesyfu_layers = nn.ModuleList()
 #         for _ in range(L):
 #             hesyfu = Hesyfu(
 #                 hidden_dim,
