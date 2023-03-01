@@ -319,7 +319,7 @@ def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_othe
     if is_syntax_enhanced:
         out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
     else:
-        out=model(input_ids, attention_mask=attention_masks)
+        out=model(input_ids, attention_mask=attention_mask)
     
     # Backward pass and optimization
     optimizer.zero_grad()
