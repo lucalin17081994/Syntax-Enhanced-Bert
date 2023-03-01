@@ -7,7 +7,7 @@ import time
 import re
 from sklearn import preprocessing
 import torch.nn.functional as F
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer, BertModel,AutoModelForSequenceClassification
 from torch.utils.data import Dataset, DataLoader
 from typing import Tuple, List, Callable, Optional
 from torch import FloatTensor, LongTensor
@@ -768,6 +768,11 @@ def initialize_model(gcn_dim, L, dep_lb_to_idx, w_c_to_idx, c_c_to_idx, device, 
     count_parameters(model)
     
     return model, model_name
+
+initialize_base_model():
+    model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=3)
+    count_parameters(model)
+    return model, 'bert-base-uncased'
 def count_parameters(model):
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     num_params = sum([np.prod(p.size()) for p in model_parameters])
