@@ -225,16 +225,27 @@ def eval_model(model, dataloader, loss_fn, device, is_syntax_enhanced):
 def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced):
     val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device, is_syntax_enhanced)
     val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device, is_syntax_enhanced)
-    wandb.log({
-        'train_losses': np.mean(train_losses),
-        'train_accuracies': np.mean(train_accuracies),
-        'val_loss': val_loss.item(),
-        'val_accuracy': val_accuracy.item(),
-        'val_loss_hard': val_loss_hard,
-        'val_acc_hard': val_accuracy_hard,
-        'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
-        'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
-    })
+    if is_syntax_enhanced:
+        wandb.log({
+            'train_losses': np.mean(train_losses),
+            'train_accuracies': np.mean(train_accuracies),
+            'val_loss': val_loss.item(),
+            'val_accuracy': val_accuracy.item(),
+            'val_loss_hard': val_loss_hard,
+            'val_acc_hard': val_accuracy_hard,
+            'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
+            'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
+        })
+    else:
+        wandb.log({
+            'train_losses': np.mean(train_losses),
+            'train_accuracies': np.mean(train_accuracies),
+            'val_loss': val_loss.item(),
+            'val_accuracy': val_accuracy.item(),
+            'val_loss_hard': val_loss_hard,
+            'val_acc_hard': val_accuracy_hard,
+            'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
+        })
 
 def eval_batch_store_preds(model, data_batch, loss_fn, device, is_syntax_enhanced):
     """
@@ -312,13 +323,15 @@ def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_othe
     
     # Backward pass and optimization
     optimizer.zero_grad()
-    optimizer_other.zero_grad()
+    if is_syntax_enhanced:
+        optimizer_other.zero_grad()
     loss = loss_fn(out, labels)
     loss.backward()
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
     optimizer.step()
     scheduler.step()
-    optimizer_other.step()
+    if is_syntax_enhanced:
+        optimizer_other.step()
     # scheduler_other.step()
     
     # Compute accuracy
