@@ -200,27 +200,31 @@ def get_hans_results_subcases(original,preds,true ):
                 results_nonentailment.append(subcase_list)
     # Return the results for entailment and neutral examples as separate lists
     return results_entailment, results_nonentailment
-def eval_batch(model, data_batch, loss_fn, device):
+def eval_batch(model, data_batch, loss_fn, device, is_syntax_enhanced):
+    
     sentence1_data, sentence2_data, labels, input_ids, attention_mask, bert_tokenized_sentences = data_batch
-    out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    if is_syntax_enhanced:
+        out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    else:
+        out=model(input_ids,attention_mask=attention_masks_batch)
     loss = loss_fn(out, labels)
     accuracy_batch = compute_accuracy_batch(out, labels)
     return loss.item(), accuracy_batch
 
 
-def eval_model(model, dataloader, loss_fn, device):
+def eval_model(model, dataloader, loss_fn, device, is_syntax_enhanced):
     model.eval()
     losses, accuracies = [], []
     with torch.no_grad():
         for batch in dataloader:
-            loss_batch, accuracy_batch = eval_batch(model, batch, loss_fn, device)
+            loss_batch, accuracy_batch = eval_batch(model, batch, loss_fn, device, is_syntax_enhanced)
             losses.append(loss_batch)
             accuracies.append(accuracy_batch)
     return np.mean(losses), np.mean(accuracies)
 
-def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb):
-    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
-    val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device)
+def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced):
+    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device, is_syntax_enhanced)
+    val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device, is_syntax_enhanced)
     wandb.log({
         'train_losses': np.mean(train_losses),
         'train_accuracies': np.mean(train_accuracies),
@@ -294,14 +298,17 @@ def compute_accuracy_batch(prediction, target):
     y_target = torch.argmax(target, dim=1)
     return (y_pred == y_target).float().mean().item()
 
-def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device):
+def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device, is_syntax_enhanced):
     model.train()
     
     # Unpack data
     sentence1_data, sentence2_data, labels, input_ids, attention_mask, bert_tokenized_sentences = data_batch
     
     # Forward pass
-    out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    if is_syntax_enhanced
+        out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
+    else:
+        out=model(input_ids, attention_mask=attention_masks_batch)
     
     # Backward pass and optimization
     optimizer.zero_grad()
@@ -318,3 +325,4 @@ def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_othe
     accuracy_batch = compute_accuracy_batch(out, labels)
     
     return loss.cpu().detach().numpy(), accuracy_batch
+
