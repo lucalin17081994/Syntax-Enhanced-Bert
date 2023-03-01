@@ -769,7 +769,7 @@ def initialize_model(gcn_dim, L, dep_lb_to_idx, w_c_to_idx, c_c_to_idx, device, 
     
     return model, model_name
 
-initialize_base_model():
+def initialize_base_model():
     model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=3)
     count_parameters(model)
     return model, 'bert-base-uncased'
