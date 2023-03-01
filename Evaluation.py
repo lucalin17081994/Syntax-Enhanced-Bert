@@ -206,7 +206,7 @@ def eval_batch(model, data_batch, loss_fn, device, is_syntax_enhanced):
     if is_syntax_enhanced:
         out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
     else:
-        out=model(input_ids,attention_mask=attention_mask)
+        out=model(input_ids,attention_mask=attention_mask).logits
     loss = loss_fn(out, labels)
     accuracy_batch = compute_accuracy_batch(out, labels)
     return loss.item(), accuracy_batch
@@ -319,7 +319,7 @@ def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_othe
     if is_syntax_enhanced:
         out = model(sentence1_data, sentence2_data, input_ids, attention_mask, bert_tokenized_sentences)
     else:
-        out=model(input_ids, attention_mask=attention_mask)
+        out=model(input_ids, attention_mask=attention_mask).logits
     
     # Backward pass and optimization
     optimizer.zero_grad()
