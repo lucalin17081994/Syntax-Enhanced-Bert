@@ -670,6 +670,9 @@ def get_batch_sup_sentence(batch, indices, device):
 def get_batch_sup(batch, device):
     '''
     Collate function for dataloader. Processes each batch to be even length
+    since there is an extra argument, you can pass this function in the dataloader as follows: 
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device))
+
     '''
     # Extract data from batch
     labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
