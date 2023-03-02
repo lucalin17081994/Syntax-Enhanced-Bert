@@ -457,6 +457,242 @@ def encode_gold_labels(df: pd.DataFrame, le: preprocessing.LabelEncoder) -> torc
     return encoded_labels
 
 
+class UnevenLengthDataset(Dataset):
+    '''
+    Dataset object if you read the data without the premises_dictionary.
+    '''
+    def __init__(self, X, tokenizer) -> None:
+        #tokenizer used in collate_fn in Dataloader
+        
+        self.Y=[x[0] for x in X]
+        #sentence1 data
+        self.text1=[x[1] for x in X]
+        self.dep_head1=[x[2] for x in X]
+        self.dep_lb1=[x[3] for x in X]
+        self.word_to_constituents1=[x[4] for x in X]
+        self.constituents_to_constituents1=[x[5] for x in X]
+        self.number_constituents1=[x[6] for x in X]
+
+        #sentence2 data
+        self.text2=[x[7] for x in X]
+        self.dep_head2=[x[8] for x in X]
+        self.dep_lb2=[x[9] for x in X]
+        self.word_to_constituents2=[x[10] for x in X]
+        self.constituents_to_constituents2=[x[11] for x in X]
+        self.number_constituents2=[x[12] for x in X]
+
+         # Encoding sentences using BERT tokenizer
+        self.bert_encoded_sentences = [
+            tokenizer.encode(" ".join(sent1), " ".join(sent2), add_special_tokens=True)
+            for sent1, sent2 in zip(self.text1, self.text2)
+        ]
+        
+        # Converting encoded sentences to tokens using BERT tokenizer
+        self.bert_tokenized_sentences = [
+            tokenizer.convert_ids_to_tokens(bert_encoded_sentence)
+            for bert_encoded_sentence in self.bert_encoded_sentences
+        ]
+        
+    def __len__(self) -> int:
+        return len(self.Y)
+        
+    def __getitem__(self, idx: int):
+
+        
+        return (
+            self.Y[idx],
+            #sentence1 data
+            self.text1[idx],
+            self.dep_head1[idx],
+            self.dep_lb1[idx],
+            self.word_to_constituents1[idx],
+            self.constituents_to_constituents1[idx],
+            self.number_constituents1[idx],
+            #sentence2 data
+            self.text2[idx],
+            self.dep_head2[idx],
+            self.dep_lb2[idx],
+            self.word_to_constituents2[idx],
+            self.constituents_to_constituents2[idx],
+            self.number_constituents2[idx],
+            self.bert_encoded_sentences[idx],
+            self.bert_tokenized_sentences[idx],
+            # idx
+            
+        )
+class SNLI_Dataset(Dataset):
+    '''
+    Dataset with premise_dictionary functionality. 
+    '''
+    def __init__(self, X, tokenizer, premises_dict) -> None:
+        # Extracting Y and sentence keys
+        self.Y = [x[0] for x in X]
+        keys = [x[1] for x in X]
+        
+        # Extracting sentence 1 features
+        sentence1_features = [premises_dict[x] for x in keys]
+        self.text1 = [x[0] for x in sentence1_features]
+        self.dep_head1 = [x[1] for x in sentence1_features]
+        self.dep_lb1 = [x[2] for x in sentence1_features]
+        self.word_to_constituents1 = [x[3] for x in sentence1_features]
+        self.constituents_to_constituents1 = [x[4] for x in sentence1_features]
+        self.number_constituents1 = [x[5] for x in sentence1_features]
+
+        # Extracting sentence 2 features
+        self.text2 = [x[2] for x in X]
+        self.dep_head2 = [x[3] for x in X]
+        self.dep_lb2 = [x[4] for x in X]
+        self.word_to_constituents2 = [x[5] for x in X]
+        self.constituents_to_constituents2 = [x[6] for x in X]
+        self.number_constituents2 = [x[7] for x in X]
+
+        # Encoding sentences using BERT tokenizer
+        self.bert_encoded_sentences = [
+            tokenizer.encode(" ".join(sent1), " ".join(sent2), add_special_tokens=True)
+            for sent1, sent2 in zip(self.text1, self.text2)
+        ]
+        
+        # Converting encoded sentences to tokens using BERT tokenizer
+        self.bert_tokenized_sentences = [
+            tokenizer.convert_ids_to_tokens(bert_encoded_sentence)
+            for bert_encoded_sentence in self.bert_encoded_sentences
+        ]
+        
+    def __len__(self) -> int:
+        return len(self.Y)
+        
+    def __getitem__(self, idx: int):
+        # Returning all features for a given index
+        return (
+            self.Y[idx],
+            # Sentence 1 features
+            self.text1[idx],
+            self.dep_head1[idx],
+            self.dep_lb1[idx],
+            self.word_to_constituents1[idx],
+            self.constituents_to_constituents1[idx],
+            self.number_constituents1[idx],
+
+            # Sentence 2 features
+            self.text2[idx],
+            self.dep_head2[idx],
+            self.dep_lb2[idx],
+            self.word_to_constituents2[idx],
+            self.constituents_to_constituents2[idx],
+            self.number_constituents2[idx],
+            self.bert_encoded_sentences[idx],
+            self.bert_tokenized_sentences[idx]
+        )
+def get_batch_sup_sentence(batch, indices, device):
+    bert_hidden_dim = 768
+    max_sent_len = max(len(d[indices[0]]) for d in batch)
+    max_const_len = max(d[indices[5]] for d in batch)
+    lengths = []
+    batch_len = len(batch)
+
+    dependency_arcs = torch.zeros((batch_len, max_sent_len, max_sent_len), requires_grad=False).to(device)
+    dependency_labels = torch.zeros((batch_len, max_sent_len), requires_grad=False, dtype=torch.long).to(device)
+    mask_batch = torch.zeros((batch_len, max_sent_len), requires_grad=False).to(device)
+    bert_embs = torch.zeros((batch_len, max_sent_len, bert_hidden_dim), requires_grad=False).to(device)
+    constituent_labels = torch.zeros((batch_len, max_const_len, bert_hidden_dim), requires_grad=False).to(device)
+    const_mask = torch.zeros((batch_len, max_const_len), requires_grad=False).to(device)
+    plain_sentences = [d[indices[0]] for d in batch]
+
+    for d, data in enumerate(batch):
+        num_const = data[indices[5]]
+        const_mask[d][:num_const] = 1.0
+
+        for w, word in enumerate(data[indices[0]]):
+            mask_batch[d, w] = 1.0
+            dependency_labels[d, w] = dep_lb_to_idx[data[indices[2]][w]]
+            dependency_arcs[d, w, w] = 1
+
+            if data[indices[1]][w] != 0:
+                dep_head = data[indices[1]][w] - 1
+                dependency_arcs[d, w, dep_head] = 1
+                dependency_arcs[d, dep_head, w] = 1
+
+        lengths.append(len(data[indices[0]]))
+    batch_w_c = []
+    for d in batch:
+        batch_w_c.append([])
+        for i in d[indices[3]]:
+            batch_w_c[-1].append([])
+            for j in i:
+                batch_w_c[-1][-1].append(j)
+
+    batch_c_c = []
+    for d in batch:
+        batch_c_c.append([])
+        for i in d[indices[3]]:
+            batch_c_c[-1].append([])
+            for j in i:
+                batch_c_c[-1][-1].append(j)
+
+    for d, _ in enumerate(batch):
+        for t, trip in enumerate(batch_w_c[d]):
+            for e, elem in enumerate(trip):
+                if elem > 499:
+                    batch_w_c[d][t][e] = (elem - 500) + max_sent_len
+
+        for t, trip in enumerate(batch_c_c[d]):
+            for e, elem in enumerate(trip):
+                if elem > 499:
+                    batch_c_c[d][t][e] = (elem - 500) + max_sent_len
+
+    const_GCN_w_c = get_const_adj_BE(
+        batch_w_c, max_sent_len + max_const_len, 2, 2, forward=True, device=device
+    )
+    const_GCN_c_w = get_const_adj_BE(
+        batch_w_c, max_sent_len + max_const_len, 5, 20, forward=False, device=device
+    )
+    const_GCN_c_c = get_const_adj_BE(
+        batch_c_c, max_sent_len + max_const_len, 2, 7, forward=True, device=device
+    )
+
+    lengths_batch = torch.LongTensor(lengths).to(device)
+
+    return [
+        mask_batch,
+        lengths_batch,
+        dependency_arcs,
+        dependency_labels,
+        constituent_labels,
+        const_GCN_w_c,
+        const_GCN_c_w,
+        const_GCN_c_c,
+        const_mask,
+        plain_sentences
+    ]
+
+def get_batch_sup(batch, device):
+    '''
+    Collate function for dataloader. Processes each batch to be even length
+    '''
+    # Extract data from batch
+    labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
+    bert_encoded_sentences = [x[13] for x in batch]
+    bert_tokenized_sentences = [x[14] for x in batch]
+
+    # Extract sentence data from batch
+    sentence1_data_indices = [1, 2, 3, 4, 5, 6]
+    sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices,device)
+    sentence2_data_indices = [7, 8, 9, 10, 11, 12]
+    sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices,device)
+
+    # Pad input_ids and convert to tensors
+    input_ids = torch.nn.utils.rnn.pad_sequence(
+        [torch.tensor(encoded_sentence) for encoded_sentence in bert_encoded_sentences],
+        padding_value=0,
+        batch_first=True
+    ).to(device)
+
+    # Create attention mask and convert to tensors
+    attention_mask = (input_ids != 0).float().to(device)
+
+    # Return the data
+    return sentence1_batch_data, sentence2_batch_data, labels_batch, input_ids, attention_mask, bert_tokenized_sentences
+
 class WarmupLinearSchedule(LambdaLR):
     """ Linear warmup and then linear decay.
         Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
