@@ -617,27 +617,27 @@ class CA_Hesyfu(nn.Module):
         self.bert = BertModel.from_pretrained("bert-base-uncased")
         
         # Hesyfu
-#         self.hesyfu_layers = nn.ModuleList()
-#         for _ in range(L):
-#             hesyfu = Hesyfu(
-#                 hidden_dim,
-#                 dep_tag_vocab_size,
-#                 w_c_vocab_size,
-#                 c_c_vocab_size, 
-#                 use_constGCN,
-#                 use_depGCN,
-#                 self.device
-#             )
-#             self.hesyfu_layers.append(hesyfu)
-        self.hesyfu = Hesyfu(
-                    hidden_dim,
-                    dep_tag_vocab_size,
-                    w_c_vocab_size,
-                    c_c_vocab_size, 
-                    use_constGCN,
-                    use_depGCN,
-                    self.device
-                )
+        self.hesyfu_layers = nn.ModuleList()
+        for _ in range(L):
+            hesyfu = Hesyfu(
+                hidden_dim,
+                dep_tag_vocab_size,
+                w_c_vocab_size,
+                c_c_vocab_size, 
+                use_constGCN,
+                use_depGCN,
+                self.device
+            )
+            self.hesyfu_layers.append(hesyfu)
+#         self.hesyfu = Hesyfu(
+#                     hidden_dim,
+#                     dep_tag_vocab_size,
+#                     w_c_vocab_size,
+#                     c_c_vocab_size, 
+#                     use_constGCN,
+#                     use_depGCN,
+#                     self.device
+#                 )
         # Co-attention
         self.co_attn = Attn(768, 768)
         self.fc = nn.Linear(768 * 4, 3)
@@ -654,10 +654,10 @@ class CA_Hesyfu(nn.Module):
 
         # Pass sentences through GCN's
         gcn_in1, gcn_in2 = bert_embs1, bert_embs2
-#         for hesyfu in self.hesyfu_layers:
-#             gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
-#             gcn_in1, gcn_in2 = gcn_out1, gcn_out2
-        gcn_out1, gcn_out2 = self.hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
+        for hesyfu in self.hesyfu_layers:
+            gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
+            gcn_in1, gcn_in2 = gcn_out1, gcn_out2
+#         gcn_out1, gcn_out2 = self.hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
     
         # Pass sentences through co-attention layer
         data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_batch1, mask_batch2)
