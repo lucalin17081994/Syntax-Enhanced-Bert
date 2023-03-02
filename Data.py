@@ -7,6 +7,8 @@ from sklearn import preprocessing
 import torch.autograd as autograd
 from typing import Any
 from torch.optim.lr_scheduler import LambdaLR
+from torch.utils.data import Dataset
+
 
 def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, w_c_to_idx, c_c_to_idx, dep_lb_to_idx):
     # Initialize variables
