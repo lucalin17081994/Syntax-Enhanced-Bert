@@ -751,6 +751,20 @@ class CA_Hesyfu(nn.Module):
             bert_embs2[s, :seq_len2, :] = text2_feature
 
         return bert_embs1, bert_embs2
+class WarmupLinearSchedule(LambdaLR):
+    """ Linear warmup and then linear decay.
+        Linearly increases learning rate from 0 to 1 over `warmup_steps` training steps.
+        Linearly decreases learning rate from 1. to 0. over remaining `t_total - warmup_steps` steps.
+    """
+    def __init__(self, optimizer, warmup_steps, t_total, last_epoch=-1):
+        self.warmup_steps = warmup_steps
+        self.t_total = t_total
+        super(WarmupLinearSchedule, self).__init__(optimizer, self.lr_lambda, last_epoch=last_epoch)
+
+    def lr_lambda(self, step):
+        if step < self.warmup_steps:
+            return float(step) / float(max(1, self.warmup_steps))
+        return max(0.0, float(self.t_total - step) / float(max(1.0, self.t_total - self.warmup_steps)))
 
 def initialize_model(gcn_dim, L, dep_lb_to_idx, w_c_to_idx, c_c_to_idx, device, use_constGCN=True, use_depGCN=True):
     model_name = ''
