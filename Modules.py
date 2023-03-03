@@ -758,21 +758,19 @@ def initialize_model(gcn_dim, L, dep_lb_to_idx, w_c_to_idx, c_c_to_idx, device, 
         model_name = 'cahesyfu'
     elif use_constGCN:
         model_name = 'constGCN'
-    else:
+    elif use_depGCN:
         model_name = 'depGCN'
-    print(f'model name: {model_name}')
+    else:
+        model_name = 'base'
 
     model = CA_Hesyfu(gcn_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, 
-                      use_constGCN=use_constGCN, use_depGCN=use_depGCN)
+                      use_constGCN=use_constGCN, use_depGCN=use_depGCN) if use_constGCN or use_depGCN else AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=3)
 
+    print(f'model name: {model_name}')
     count_parameters(model)
     
     return model, model_name
 
-def initialize_base_model():
-    model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=3)
-    count_parameters(model)
-    return model, 'bert-base-uncased'
 def count_parameters(model):
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     num_params = sum([np.prod(p.size()) for p in model_parameters])
