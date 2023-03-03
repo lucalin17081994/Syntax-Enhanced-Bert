@@ -13,6 +13,7 @@ from typing import Tuple, List, Callable, Optional
 from torch import FloatTensor, LongTensor
 from typing import List, Any, Iterable
 from torch.autograd import Variable
+from torch.optim.lr_scheduler import LambdaLR
 
 def masked_softmax(vector: torch.Tensor,
                    mask: torch.Tensor,
