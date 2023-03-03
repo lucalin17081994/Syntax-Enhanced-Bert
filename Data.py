@@ -6,7 +6,6 @@ from typing import List, Dict, Tuple
 from sklearn import preprocessing
 import torch.autograd as autograd
 from typing import Any
-from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import Dataset
 
 def read_data_pandas(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict) -> Tuple[List[List[Any]], dict, dict, dict]:
