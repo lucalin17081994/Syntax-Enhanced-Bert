@@ -9,6 +9,103 @@ from typing import Any
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import Dataset
 
+def read_data_pandas(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict) -> Tuple[List[List[Any]], dict, dict, dict]:
+    """
+    Reads in a pandas DataFrame containing data, and extracts features from the data using the `get_sentence_features`
+    function. The features are stored in a list of lists, which is returned along with updated dictionaries containing
+    word-to-index, constituent-to-index, and dependency label-to-index mappings, which are the vocabs for dependency and constituency labels.
+
+    Args:
+        data_file (pandas.DataFrame): A pandas DataFrame containing the data to be processed.
+        w_c_to_idx (Dict[str, int]): A dictionary mapping words to their corresponding indices.
+        c_c_to_idx (Dict[str, int]): A dictionary mapping constituents to their corresponding indices.
+        dep_lb_to_idx (Dict[str, int]): A dictionary mapping dependency labels to their corresponding indices.
+
+    Returns:
+        A tuple containing the processed data, updated word-to-index, constituent-to-index, and dependency-label-to-index mappings.
+    """
+    data = []
+    
+    for i in range(len(df)):
+        
+        # get the current line of df
+        line = df.iloc[i]
+
+        # get features for the first sentence
+        text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1, curr_num1, \
+            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
+                line, 'text_sentence1', 'sentence1_parse', 'heads_sentence1', 'deprel_sentence1',
+                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
+
+        # get features for the second sentence
+        text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2, curr_num2, \
+            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
+                line, 'text_sentence2', 'sentence2_parse', 'heads_sentence2', 'deprel_sentence2',
+                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
+        
+        # get the gold label for the line
+        label = line['gold_label']
+      
+        # add the line's data to the data list
+        data.append([
+            label, text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1,
+            curr_num1 - 500, text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2,
+            curr_num2 - 500])
+
+    return data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx
+def read_data_pandas_snli(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict, premises_dict: dict) -> Tuple[List[List[Any]], dict, dict, dict, dict]:
+    """
+    Optimization version of read_data_pandas. Premises occur 3-15x in SNLI, which makes it more efficient to store them only once in a dict.
+
+    Args:
+        data_file (pandas.DataFrame): A pandas DataFrame containing the data to be processed.
+        w_c_to_idx (Dict[str, int]): A dictionary mapping words to their corresponding constituency indices.
+        c_c_to_idx (Dict[str, int]): A dictionary mapping constituents to their corresponding indices.
+        dep_lb_to_idx (Dict[str, int]): A dictionary mapping dependency labels to their corresponding indices.
+        premises_dict (Dict[list, list]): A dictionary mapping sentences to features. Premises in SNLI are repeated 3x.
+
+    Returns:
+        A tuple containing the processed data, updated word-to-index, constituent-to-index, and dependency-label-to-index mappings.
+    """
+    data = []
+    for i in range(len(df)):
+        
+        # get the current line of df
+        line = df.iloc[i]
+
+        # get features for the first sentence
+        text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1, curr_num1, \
+            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
+                line, 'text_sentence1', 'sentence1_parse', 'heads_sentence1', 'deprel_sentence1',
+                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
+
+        # get features for the second sentence
+        text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2, curr_num2, \
+            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
+                line, 'text_sentence2', 'sentence2_parse', 'heads_sentence2', 'deprel_sentence2',
+                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
+        
+        # get the gold label for the line
+        label = line['gold_label']
+
+        #add premise to dictionary
+        key=" ".join([x for x in text1])
+        if key not in premises_dict:
+            premises_dict[key] = [text1,
+                                  dep_head1, 
+                                  dep_lb1, 
+                                  word_to_constituents1, 
+                                  constituents_to_constituents1,
+                                  curr_num1 - 500]
+      
+        # add the line's data to the data list
+        data.append([
+            label, 
+            key,
+            text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2,
+            curr_num2 - 500])
+
+    return data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
 
 def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, w_c_to_idx, c_c_to_idx, dep_lb_to_idx):
     # Initialize variables
@@ -45,37 +142,6 @@ def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, 
         stack_const.append(const)
         curr_num += 1
 
-        # If current constituent has a closing parenthesis, process it
-#         if constituency.find(')') > -1:
-#             # Pop current constituent from stack
-#             num = stack_num.pop()
-#             const = stack_const.pop()
-
-#             # If constituent is not ROOT, add it to word-to-constituents arcs
-#             if const != "ROOT":
-#                 if const not in w_c_to_idx:
-#                     w_c_to_idx[const] = len(w_c_to_idx)
-#                 word_to_constituents.append([w_c_to_idx[const], j, num, 1])
-
-#             # If there are more constituents on the stack, add constituents-to-constituents arcs
-#             if len(stack_num) != 0:
-#                 # Add constituents-to-constituents arc from super to sub constituent
-#                 if stack_const[-1] != "ROOT":
-#                     if stack_const[-1] not in c_c_to_idx:
-#                         c_c_to_idx[stack_const[-1]] = len(c_c_to_idx)
-#                     constituents_to_constituents.append([c_c_to_idx[stack_const[-1]], stack_num[-1], num, 0])
-
-#                     # Update children dictionary for super constituent
-#                     if stack_const[-1] not in children:
-#                         children[stack_const[-1]] = [const]
-#                     else:
-#                         children[stack_const[-1]].append(const)
-
-#                 # Add constituents-to-constituents arc from sub to super constituent
-#                 if const != "ROOT":
-#                     if const not in c_c_to_idx:
-#                         c_c_to_idx[const] = len(c_c_to_idx)
-#                     constituents_to_constituents.append([c_c_to_idx[const], num, stack_num[-1], 1])
         if constituency.find(')') >-1:
             for c in constituency:
               if c == ")":
@@ -134,267 +200,10 @@ def get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, 
 
     # Return relevant information
     return text, dep_head, dep_lb, word_to_constituents, constituents_to_constituents, curr_num, w_c_to_idx, c_c_to_idx, dep_lb_to_idx
-def read_data_pandas(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict) -> Tuple[List[List[Any]], dict, dict, dict]:
-    """
-    Reads in a pandas DataFrame containing data, and extracts features from the data using the `get_sentence_features`
-    function. The features are stored in a list of lists, which is returned along with updated dictionaries containing
-    word-to-index, constituent-to-index, and dependency label-to-index mappings.
 
-    Args:
-        data_file (pandas.DataFrame): A pandas DataFrame containing the data to be processed.
-        w_c_to_idx (Dict[str, int]): A dictionary mapping words to their corresponding indices.
-        c_c_to_idx (Dict[str, int]): A dictionary mapping constituents to their corresponding indices.
-        dep_lb_to_idx (Dict[str, int]): A dictionary mapping dependency labels to their corresponding indices.
-
-    Returns:
-        A tuple containing the processed data, updated word-to-index, constituent-to-index, and dependency-label-to-index mappings.
-    """
-    data = []
-    
-    for i in range(len(df)):
-        
-        # get the current line of df
-        line = df.iloc[i]
-
-        # get features for the first sentence
-        text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1, curr_num1, \
-            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
-                line, 'text_sentence1', 'sentence1_parse', 'heads_sentence1', 'deprel_sentence1',
-                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
-
-        # get features for the second sentence
-        text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2, curr_num2, \
-            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
-                line, 'text_sentence2', 'sentence2_parse', 'heads_sentence2', 'deprel_sentence2',
-                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
-        
-        # get the gold label for the line
-        label = line['gold_label']
-      
-        # add the line's data to the data list
-        data.append([
-            label, text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1,
-            curr_num1 - 500, text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2,
-            curr_num2 - 500])
-
-    return data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx
-def read_data_pandas_snli(df: pd.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict, premises_dict: dict) -> Tuple[List[List[Any]], dict, dict, dict, dict]:
-    """
-    Reads in a pandas DataFrame containing data, and extracts features from the data using the `get_sentence_features`
-    function. The features are stored in a list of lists, which is returned along with updated dictionaries containing
-    word-to-index, constituent-to-index, and dependency label-to-index mappings. For SNLI, premise features are stored
-    in a dict for efficiency.
-
-    Args:
-        data_file (pandas.DataFrame): A pandas DataFrame containing the data to be processed.
-        w_c_to_idx (Dict[str, int]): A dictionary mapping words to their corresponding constituency indices.
-        c_c_to_idx (Dict[str, int]): A dictionary mapping constituents to their corresponding indices.
-        dep_lb_to_idx (Dict[str, int]): A dictionary mapping dependency labels to their corresponding indices.
-        premises_dict (Dict[list, list]): A dictionary mapping sentences to features. Premises in SNLI are repeated 3x.
-
-    Returns:
-        A tuple containing the processed data, updated word-to-index, constituent-to-index, and dependency-label-to-index mappings.
-    """
-    data = []
-    for i in range(len(df)):
-        
-        # get the current line of df
-        line = df.iloc[i]
-
-        # get features for the first sentence
-        text1, dep_head1, dep_lb1, word_to_constituents1, constituents_to_constituents1, curr_num1, \
-            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
-                line, 'text_sentence1', 'sentence1_parse', 'heads_sentence1', 'deprel_sentence1',
-                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
-
-        # get features for the second sentence
-        text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2, curr_num2, \
-            w_c_to_idx, c_c_to_idx, dep_lb_to_idx = get_sentence_features(
-                line, 'text_sentence2', 'sentence2_parse', 'heads_sentence2', 'deprel_sentence2',
-                w_c_to_idx, c_c_to_idx, dep_lb_to_idx)
-        
-        # get the gold label for the line
-        label = line['gold_label']
-
-        #add premise to dictionary
-        key=" ".join([x for x in text1])
-        if key not in premises_dict:
-            premises_dict[key] = [text1,
-                                  dep_head1, 
-                                  dep_lb1, 
-                                  word_to_constituents1, 
-                                  constituents_to_constituents1,
-                                  curr_num1 - 500]
-      
-        # add the line's data to the data list
-        data.append([
-            label, 
-            key,
-            text2, dep_head2, dep_lb2, word_to_constituents2, constituents_to_constituents2,
-            curr_num2 - 500])
-
-    return data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
-def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,device):
-    node1_index = [[word[1] for word in sent] for sent in batch]
-    node2_index = [[word[2] for word in sent] for sent in batch]
-    label_index = [[word[0] for word in sent] for sent in batch]
-    begin_index = [[word[3] for word in sent] for sent in batch]
-
-    batch_size = len(batch)
-
-    _MAX_BATCH_LEN = max_batch_len
-    _MAX_DEGREE_IN = max_degr_in
-    _MAX_DEGREE_OUT = max_degr_out
-
-    adj_arc_in = np.zeros(
-        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_IN, 2), dtype="int32"
-    )
-    adj_lab_in = np.zeros(
-        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_IN, 1), dtype="int32"
-    )
-    adj_arc_out = np.zeros(
-        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_OUT, 2), dtype="int32"
-    )
-    adj_lab_out = np.zeros(
-        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_OUT, 1), dtype="int32"
-    )
-
-    mask_in = np.zeros((batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_IN), dtype="float32")
-    mask_out = np.zeros(
-        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_OUT), dtype="float32"
-    )
-    mask_loop = np.ones((batch_size * _MAX_BATCH_LEN, 1), dtype="float32")
-
-    tmp_in = {}
-    tmp_out = {}
-
-    for d, de in enumerate(node1_index):  # iterates over the batch
-        for a, arc in enumerate(de):
-            if not forward:
-                arc_1 = arc
-                arc_2 = node2_index[d][a]
-            else:
-                arc_2 = arc
-                arc_1 = node2_index[d][a]
-
-            if begin_index[d][a] == 0:  # BEGIN
-                if arc_1 in tmp_in:
-                    tmp_in[arc_1] += 1
-                else:
-                    tmp_in[arc_1] = 0
-
-                idx_in = (
-                    (d * _MAX_BATCH_LEN * _MAX_DEGREE_IN)
-                    + arc_1 * _MAX_DEGREE_IN
-                    + tmp_in[arc_1]
-                )
-
-                if tmp_in[arc_1] < _MAX_DEGREE_IN:
-                    adj_arc_in[idx_in] = np.array([d, arc_2])  # incoming arcs
-                    adj_lab_in[idx_in] = np.array([label_index[d][a]])  # incoming arcs
-                    mask_in[idx_in] = 1.0
-
-            else:  # END
-                if arc_1 in tmp_out:
-                    tmp_out[arc_1] += 1
-                else:
-                    tmp_out[arc_1] = 0
-
-                idx_out = (
-                    (d * _MAX_BATCH_LEN * _MAX_DEGREE_OUT)
-                    + arc_1 * _MAX_DEGREE_OUT
-                    + tmp_out[arc_1]
-                )
-
-                if tmp_out[arc_1] < _MAX_DEGREE_OUT:
-                    adj_arc_out[idx_out] = np.array([d, arc_2])  # outgoing arcs
-                    adj_lab_out[idx_out] = np.array(
-                        [label_index[d][a]]
-                    )  # outgoing arcs
-                    mask_out[idx_out] = 1.0
-
-        tmp_in = {}
-        tmp_out = {}
-
-    adj_arc_in = torch.LongTensor(np.transpose(adj_arc_in).tolist())
-    adj_arc_out = torch.LongTensor(np.transpose(adj_arc_out).tolist())
-
-    adj_lab_in = torch.LongTensor(np.transpose(adj_lab_in).tolist())
-    adj_lab_out = torch.LongTensor(np.transpose(adj_lab_out).tolist())
-
-    mask_in = autograd.Variable(
-        torch.FloatTensor(
-            mask_in.reshape((_MAX_BATCH_LEN * batch_size, _MAX_DEGREE_IN)).tolist()
-        ),
-        requires_grad=False,
-    )
-    mask_out = autograd.Variable(
-        torch.FloatTensor(
-            mask_out.reshape((_MAX_BATCH_LEN * batch_size, _MAX_DEGREE_OUT)).tolist()
-        ),
-        requires_grad=False,
-    )
-    mask_loop = autograd.Variable(
-        torch.FloatTensor(mask_loop.tolist()), requires_grad=False
-    )
-
-    
-    adj_arc_in = adj_arc_in.to(device)
-    adj_arc_out = adj_arc_out.to(device)
-    adj_lab_in = adj_lab_in.to(device)
-    adj_lab_out = adj_lab_out.to(device)
-    mask_in = mask_in.to(device)
-    mask_out = mask_out.to(device)
-    mask_loop = mask_loop.to(device)
-    return [
-        adj_arc_in,
-        adj_arc_out,
-        adj_lab_in,
-        adj_lab_out,
-        mask_in,
-        mask_out,
-        mask_loop,
-    ]
-# def read_dropna_encode_dataframe(file_name: str, le: preprocessing.LabelEncoder, fit: bool) -> pd.DataFrame:
-#     """
-#     Reads a pandas DataFrame from a pickle file, removes rows with NaN values and those with a gold_label of '-',
-#     encodes the gold_label column using a LabelEncoder object and returns the resulting DataFrame.
-    
-#     Parameters:
-#     -----------
-#     file_name: str
-#         The name of the pickle file to read the DataFrame from.
-#     le: sklearn.preprocessing.LabelEncoder
-#         A LabelEncoder object used to encode the gold_label column.
-#     fit: bool
-#         If True, fits the LabelEncoder on the gold_label column before encoding it. 
-        
-#     Returns:
-#     --------
-#     df: pd.DataFrame
-#         The resulting DataFrame with the encoded gold_label column.
-#     """
-#     # read the DataFrame from the pickle file
-#     df = pd.read_pickle(file_name)
-    
-#     # remove rows with NaN values and gold_label of '-'
-#     df = df.dropna()
-#     df = df[df.gold_label != '-']
-    
-#     # fit and transform the gold_label column if requested
-#     if fit:
-#         le.fit(list(df['gold_label']))
-        
-#     labels = encode_gold_labels(df, le)
-    
-#     # replace the original gold_label column with the encoded one
-#     df['gold_label'] = labels.tolist()
-    
-#     # return the resulting DataFrame
-#     return df
 def read_dropna_encode_dataframe(file_name, le, fit, is_hans=False, is_mnli=False):
     """
-    Reads a pandas dataframe from a pickle file, drops rows with missing values, and encodes the gold labels.
+    Reads a pandas dataframe from a pickle file, drops rows with missing values, and encodes the gold labels in [x,y,z] format for crossentropy.
     
     Args:
     - file_name (str): name of the pickle file to read the dataframe from
@@ -586,6 +395,35 @@ class SNLI_Dataset(Dataset):
             self.bert_tokenized_sentences[idx]
         )
 
+def get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN):
+    
+    # Extract sentence data from batch, 
+    if use_constGCN or use_depGCN:
+      sentence1_data_indices = [1, 2, 3, 4, 5, 6]
+      sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN)
+      sentence2_data_indices = [7, 8, 9, 10, 11, 12]
+      sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN)
+    else:
+      sentence1_batch_data = [None] * 10
+      sentence2_batch_data = [None] * 10
+
+    # Extract data for BERT
+    labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
+    bert_encoded_sentences = [x[13] for x in batch]
+    bert_tokenized_sentences = [x[14] for x in batch]
+
+    # Pad input_ids and convert to tensors
+    input_ids = torch.nn.utils.rnn.pad_sequence(
+        [torch.tensor(encoded_sentence) for encoded_sentence in bert_encoded_sentences],
+        padding_value=0,
+        batch_first=True
+    ).to(device)
+
+    # Create attention mask and convert to tensors
+    attention_mask = (input_ids != 0).float().to(device)
+
+    # Return the data
+    return sentence1_batch_data, sentence2_batch_data, labels_batch, input_ids, attention_mask, bert_tokenized_sentences
 def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN):
     bert_hidden_dim = 768
     max_sent_len = max(len(d[indices[0]]) for d in batch)
@@ -678,36 +516,127 @@ def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, 
         plain_sentences
     ]
 
-def get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN):
+def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,device):
+    node1_index = [[word[1] for word in sent] for sent in batch]
+    node2_index = [[word[2] for word in sent] for sent in batch]
+    label_index = [[word[0] for word in sent] for sent in batch]
+    begin_index = [[word[3] for word in sent] for sent in batch]
+
+    batch_size = len(batch)
+
+    _MAX_BATCH_LEN = max_batch_len
+    _MAX_DEGREE_IN = max_degr_in
+    _MAX_DEGREE_OUT = max_degr_out
+
+    adj_arc_in = np.zeros(
+        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_IN, 2), dtype="int32"
+    )
+    adj_lab_in = np.zeros(
+        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_IN, 1), dtype="int32"
+    )
+    adj_arc_out = np.zeros(
+        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_OUT, 2), dtype="int32"
+    )
+    adj_lab_out = np.zeros(
+        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_OUT, 1), dtype="int32"
+    )
+
+    mask_in = np.zeros((batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_IN), dtype="float32")
+    mask_out = np.zeros(
+        (batch_size * _MAX_BATCH_LEN * _MAX_DEGREE_OUT), dtype="float32"
+    )
+    mask_loop = np.ones((batch_size * _MAX_BATCH_LEN, 1), dtype="float32")
+
+    tmp_in = {}
+    tmp_out = {}
+
+    for d, de in enumerate(node1_index):  # iterates over the batch
+        for a, arc in enumerate(de):
+            if not forward:
+                arc_1 = arc
+                arc_2 = node2_index[d][a]
+            else:
+                arc_2 = arc
+                arc_1 = node2_index[d][a]
+
+            if begin_index[d][a] == 0:  # BEGIN
+                if arc_1 in tmp_in:
+                    tmp_in[arc_1] += 1
+                else:
+                    tmp_in[arc_1] = 0
+
+                idx_in = (
+                    (d * _MAX_BATCH_LEN * _MAX_DEGREE_IN)
+                    + arc_1 * _MAX_DEGREE_IN
+                    + tmp_in[arc_1]
+                )
+
+                if tmp_in[arc_1] < _MAX_DEGREE_IN:
+                    adj_arc_in[idx_in] = np.array([d, arc_2])  # incoming arcs
+                    adj_lab_in[idx_in] = np.array([label_index[d][a]])  # incoming arcs
+                    mask_in[idx_in] = 1.0
+
+            else:  # END
+                if arc_1 in tmp_out:
+                    tmp_out[arc_1] += 1
+                else:
+                    tmp_out[arc_1] = 0
+
+                idx_out = (
+                    (d * _MAX_BATCH_LEN * _MAX_DEGREE_OUT)
+                    + arc_1 * _MAX_DEGREE_OUT
+                    + tmp_out[arc_1]
+                )
+
+                if tmp_out[arc_1] < _MAX_DEGREE_OUT:
+                    adj_arc_out[idx_out] = np.array([d, arc_2])  # outgoing arcs
+                    adj_lab_out[idx_out] = np.array(
+                        [label_index[d][a]]
+                    )  # outgoing arcs
+                    mask_out[idx_out] = 1.0
+
+        tmp_in = {}
+        tmp_out = {}
+
+    adj_arc_in = torch.LongTensor(np.transpose(adj_arc_in).tolist())
+    adj_arc_out = torch.LongTensor(np.transpose(adj_arc_out).tolist())
+
+    adj_lab_in = torch.LongTensor(np.transpose(adj_lab_in).tolist())
+    adj_lab_out = torch.LongTensor(np.transpose(adj_lab_out).tolist())
+
+    mask_in = autograd.Variable(
+        torch.FloatTensor(
+            mask_in.reshape((_MAX_BATCH_LEN * batch_size, _MAX_DEGREE_IN)).tolist()
+        ),
+        requires_grad=False,
+    )
+    mask_out = autograd.Variable(
+        torch.FloatTensor(
+            mask_out.reshape((_MAX_BATCH_LEN * batch_size, _MAX_DEGREE_OUT)).tolist()
+        ),
+        requires_grad=False,
+    )
+    mask_loop = autograd.Variable(
+        torch.FloatTensor(mask_loop.tolist()), requires_grad=False
+    )
+
     
-    # Extract sentence data from batch, 
-    if use_constGCN or use_depGCN:
-      sentence1_data_indices = [1, 2, 3, 4, 5, 6]
-      sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN)
-      sentence2_data_indices = [7, 8, 9, 10, 11, 12]
-      sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN)
-    else:
-      sentence1_batch_data = [None] * 10
-      sentence2_batch_data = [None] * 10
-
-    # Extract data for BERT
-    labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
-    bert_encoded_sentences = [x[13] for x in batch]
-    bert_tokenized_sentences = [x[14] for x in batch]
-
-    # Pad input_ids and convert to tensors
-    input_ids = torch.nn.utils.rnn.pad_sequence(
-        [torch.tensor(encoded_sentence) for encoded_sentence in bert_encoded_sentences],
-        padding_value=0,
-        batch_first=True
-    ).to(device)
-
-    # Create attention mask and convert to tensors
-    attention_mask = (input_ids != 0).float().to(device)
-
-    # Return the data
-    return sentence1_batch_data, sentence2_batch_data, labels_batch, input_ids, attention_mask, bert_tokenized_sentences
-
+    adj_arc_in = adj_arc_in.to(device)
+    adj_arc_out = adj_arc_out.to(device)
+    adj_lab_in = adj_lab_in.to(device)
+    adj_lab_out = adj_lab_out.to(device)
+    mask_in = mask_in.to(device)
+    mask_out = mask_out.to(device)
+    mask_loop = mask_loop.to(device)
+    return [
+        adj_arc_in,
+        adj_arc_out,
+        adj_lab_in,
+        adj_lab_out,
+        mask_in,
+        mask_out,
+        mask_loop,
+    ]
 
 class WarmupLinearSchedule(LambdaLR):
     """ Linear warmup and then linear decay.
