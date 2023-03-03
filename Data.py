@@ -585,72 +585,83 @@ class SNLI_Dataset(Dataset):
             self.bert_encoded_sentences[idx],
             self.bert_tokenized_sentences[idx]
         )
-def get_batch_sup_sentence(batch, indices, device):
+
+def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN):
     bert_hidden_dim = 768
     max_sent_len = max(len(d[indices[0]]) for d in batch)
     max_const_len = max(d[indices[5]] for d in batch)
     lengths = []
     batch_len = len(batch)
 
-    dependency_arcs = torch.zeros((batch_len, max_sent_len, max_sent_len), requires_grad=False).to(device)
-    dependency_labels = torch.zeros((batch_len, max_sent_len), requires_grad=False, dtype=torch.long).to(device)
+    #only create dep arcs and labels tensors if needed for depGCN
+    dependency_arcs = torch.zeros((batch_len, max_sent_len, max_sent_len), requires_grad=False).to(device) if use_depGCN else None
+    dependency_labels = torch.zeros((batch_len, max_sent_len), requires_grad=False, dtype=torch.long).to(device) if use_depGCN else None
+
     mask_batch = torch.zeros((batch_len, max_sent_len), requires_grad=False).to(device)
     bert_embs = torch.zeros((batch_len, max_sent_len, bert_hidden_dim), requires_grad=False).to(device)
-    constituent_labels = torch.zeros((batch_len, max_const_len, bert_hidden_dim), requires_grad=False).to(device)
-    const_mask = torch.zeros((batch_len, max_const_len), requires_grad=False).to(device)
+    
+    #only get constituent features if necessary
+    constituent_labels = torch.zeros((batch_len, max_const_len, bert_hidden_dim), requires_grad=False).to(device) if use_constGCN else None
+    const_mask = torch.zeros((batch_len, max_const_len), requires_grad=False).to(device) if use_constGCN else None
     plain_sentences = [d[indices[0]] for d in batch]
 
     for d, data in enumerate(batch):
         num_const = data[indices[5]]
-        const_mask[d][:num_const] = 1.0
+        if use_constGCN:
+            const_mask[d][:num_const] = 1.0
 
         for w, word in enumerate(data[indices[0]]):
             mask_batch[d, w] = 1.0
-            dependency_labels[d, w] = dep_lb_to_idx[data[indices[2]][w]]
-            dependency_arcs[d, w, w] = 1
 
-            if data[indices[1]][w] != 0:
-                dep_head = data[indices[1]][w] - 1
-                dependency_arcs[d, w, dep_head] = 1
-                dependency_arcs[d, dep_head, w] = 1
+            if use_depGCN:
+                dependency_labels[d, w] = dep_lb_to_idx[data[indices[2]][w]]
+                dependency_arcs[d, w, w] = 1
+
+                if data[indices[1]][w] != 0:
+                    dep_head = data[indices[1]][w] - 1
+                    dependency_arcs[d, w, dep_head] = 1
+                    dependency_arcs[d, dep_head, w] = 1
 
         lengths.append(len(data[indices[0]]))
-    batch_w_c = []
-    for d in batch:
-        batch_w_c.append([])
-        for i in d[indices[3]]:
-            batch_w_c[-1].append([])
-            for j in i:
-                batch_w_c[-1][-1].append(j)
+    
+    if use_constGCN:
+        batch_w_c = []
+        for d in batch:
+            batch_w_c.append([])
+            for i in d[indices[3]]:
+                batch_w_c[-1].append([])
+                for j in i:
+                    batch_w_c[-1][-1].append(j)
 
-    batch_c_c = []
-    for d in batch:
-        batch_c_c.append([])
-        for i in d[indices[3]]:
-            batch_c_c[-1].append([])
-            for j in i:
-                batch_c_c[-1][-1].append(j)
+        batch_c_c = []
+        for d in batch:
+            batch_c_c.append([])
+            for i in d[indices[3]]:
+                batch_c_c[-1].append([])
+                for j in i:
+                    batch_c_c[-1][-1].append(j)
 
-    for d, _ in enumerate(batch):
-        for t, trip in enumerate(batch_w_c[d]):
-            for e, elem in enumerate(trip):
-                if elem > 499:
-                    batch_w_c[d][t][e] = (elem - 500) + max_sent_len
+        for d, _ in enumerate(batch):
+            for t, trip in enumerate(batch_w_c[d]):
+                for e, elem in enumerate(trip):
+                    if elem > 499:
+                        batch_w_c[d][t][e] = (elem - 500) + max_sent_len
 
-        for t, trip in enumerate(batch_c_c[d]):
-            for e, elem in enumerate(trip):
-                if elem > 499:
-                    batch_c_c[d][t][e] = (elem - 500) + max_sent_len
+            for t, trip in enumerate(batch_c_c[d]):
+                for e, elem in enumerate(trip):
+                    if elem > 499:
+                        batch_c_c[d][t][e] = (elem - 500) + max_sent_len
 
     const_GCN_w_c = get_const_adj_BE(
         batch_w_c, max_sent_len + max_const_len, 2, 2, forward=True, device=device
-    )
+    ) if use_constGCN else None
     const_GCN_c_w = get_const_adj_BE(
         batch_w_c, max_sent_len + max_const_len, 5, 20, forward=False, device=device
-    )
+    ) if use_constGCN else None
     const_GCN_c_c = get_const_adj_BE(
         batch_c_c, max_sent_len + max_const_len, 2, 7, forward=True, device=device
-    )
+    ) if use_constGCN else None
+
 
     lengths_batch = torch.LongTensor(lengths).to(device)
 
@@ -667,23 +678,22 @@ def get_batch_sup_sentence(batch, indices, device):
         plain_sentences
     ]
 
-def get_batch_sup(batch, device):
-    '''
-    Collate function for dataloader. Processes each batch to be even length
-    since there is an extra argument, you can pass this function in the dataloader as follows: 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device))
+def get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN):
+    
+    # Extract sentence data from batch, 
+    if use_constGCN or use_depGCN:
+      sentence1_data_indices = [1, 2, 3, 4, 5, 6]
+      sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN)
+      sentence2_data_indices = [7, 8, 9, 10, 11, 12]
+      sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN)
+    else:
+      sentence1_batch_data = [None] * 10
+      sentence2_batch_data = [None] * 10
 
-    '''
-    # Extract data from batch
+    # Extract data for BERT
     labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
     bert_encoded_sentences = [x[13] for x in batch]
     bert_tokenized_sentences = [x[14] for x in batch]
-
-    # Extract sentence data from batch
-    sentence1_data_indices = [1, 2, 3, 4, 5, 6]
-    sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices,device)
-    sentence2_data_indices = [7, 8, 9, 10, 11, 12]
-    sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices,device)
 
     # Pad input_ids and convert to tensors
     input_ids = torch.nn.utils.rnn.pad_sequence(
@@ -697,6 +707,7 @@ def get_batch_sup(batch, device):
 
     # Return the data
     return sentence1_batch_data, sentence2_batch_data, labels_batch, input_ids, attention_mask, bert_tokenized_sentences
+
 
 class WarmupLinearSchedule(LambdaLR):
     """ Linear warmup and then linear decay.
