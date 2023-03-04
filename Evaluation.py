@@ -222,7 +222,7 @@ def eval_model(model, dataloader, loss_fn, device, is_syntax_enhanced):
             accuracies.append(accuracy_batch)
     return np.mean(losses), np.mean(accuracies)
 
-def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, device, wandb, is_syntax_enhanced):
+def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced):
     val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device, is_syntax_enhanced)
     val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device, is_syntax_enhanced)
     if is_syntax_enhanced:
@@ -234,7 +234,7 @@ def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_
             'val_loss_hard': val_loss_hard,
             'val_acc_hard': val_accuracy_hard,
             'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
-            #'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
+            'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
         })
     else:
         wandb.log({
