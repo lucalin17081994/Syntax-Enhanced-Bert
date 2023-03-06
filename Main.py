@@ -13,9 +13,9 @@ https://github.com/lucalin17081994/Syntax-Enhanced-Bert
 """
 
 # Commented out IPython magic to ensure Python compatibility.
-!pip install transformers
-!apt-get install git
-!git clone https://github.com/lucalin17081994/Syntax-Enhanced-Bert/
+# !pip install transformers
+# !apt-get install git
+# !git clone https://github.com/lucalin17081994/Syntax-Enhanced-Bert/
 # %cd Syntax-Enhanced-Bert
 
 import Modules
@@ -44,25 +44,6 @@ from torch.utils.data import Dataset, DataLoader
 from typing import Tuple, List, Callable, Optional
 from torch import FloatTensor, LongTensor
 
-# from importlib import reload
-# # Reload the module containing the function
-# reload(Data)
-# reload(Modules)
-# reload(Evaluation)
-# # Reimport the functions
-# import Modules
-# from Modules import CA_Hesyfu, initialize_model, initialize_model, WarmupLinearSchedule
-# import Data
-# from Data import (
-#     read_dropna_encode_dataframe,
-#     read_data_pandas_snli, 
-#     read_data_pandas, 
-#     SNLI_Dataset,
-#     get_batch_sup
-# )
-# import Evaluation
-# from Evaluation import log_eval_metrics,train_batch
-
 np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
@@ -71,14 +52,6 @@ if torch.cuda.is_available():
    device = torch.device("cuda:0")
 else:
   device=torch.device("cpu")
-
-"""# Run Pipeline
-
-## Unzip file from drive
-"""
-
-from google.colab import drive
-drive.mount('/content/drive')
 
 from zipfile import ZipFile
 
@@ -122,7 +95,7 @@ model needs dependency vocab and constituency vocabs
 """
 
 # use_constGCN and use_depGCN passed to initialize_model() and collate_fn
-use_constGCN=False
+use_constGCN=True
 use_depGCN=False
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -153,7 +126,7 @@ run_name = "no_shuffling"
 batch_size = train_dataloader.batch_size
 n_epochs = 2
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 1e-4
+learning_rate = 3e-5
 lr_other = 1e-4
 
 if is_syntax_enhanced:
@@ -174,9 +147,9 @@ else:
                                           warmup_steps=int(len(train_dataloader) / 10),
                                           t_total=len(train_dataloader) * n_epochs)
     optimizer_other=None
-!pip install wandb -Uq
+# !pip install wandb -Uq
 import wandb
-wandb.login()
+wandb.login(key = 'a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
 run = wandb.init(project=run_name)
 model_name = model_name
 wandb.config.update({
@@ -226,8 +199,3 @@ print('last evaluation')
 model.to(device)
 log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
 run.finish()
-
-from google.colab import runtime
-runtime.unassign()
-
-torch.cuda.empty_cache()
