@@ -55,7 +55,7 @@ else:
 
 from zipfile import ZipFile
 
-file_name = "/content/drive/MyDrive/SNLI_2validations.zip"
+file_name = "SNLI_2validations.zip"
 
 with ZipFile(file_name, 'r') as zipfile:
     zipfile.printdir()
