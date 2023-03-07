@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --gpus=1
 #SBATCH --partition=gpu
-#SBATCH --time=08:00:00
+#SBATCH --time=05:00:00
 
 ls
 module load 2021
