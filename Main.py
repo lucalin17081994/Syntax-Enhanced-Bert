@@ -51,7 +51,8 @@ if torch.cuda.is_available():
    print("Training on GPU")
    device = torch.device("cuda:0")
 else:
-  device=torch.device("cpu")
+   print('training on CPU')
+   device=torch.device("cpu")
 
 from zipfile import ZipFile
 
