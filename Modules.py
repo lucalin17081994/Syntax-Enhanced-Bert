@@ -540,12 +540,20 @@ class Hesyfu(nn.Module):
         base_out2 = self.embedding_dropout(bert_embs2)
         b1, t1, e1 = base_out1.shape
         b2, t2, e2 = base_out2.shape
-
+# Apply Dependency GCN
+        if self.use_depGCN:
+            # Use Constituency GCN output as input if using it, otherwise use base embeddings
+            dep_gcn_in1 = base_out1
+            dep_gcn_in2 = base_out2
+            
+            # Apply Dependency GCN
+            dep_gcn_out1 = self.dep_gcn(dep_gcn_in1, dependency_arcs1, dependency_labels1)
+            dep_gcn_out2 = self.dep_gcn(dep_gcn_in2, dependency_arcs2, dependency_labels2)
         # Apply Constituency GCN
         if self.use_constGCN:
             # Concatenate input embeddings with constituent labels
-            const_gcn_in1 = torch.cat([base_out1, constituent_labels1], dim=1)
-            const_gcn_in2 = torch.cat([base_out2, constituent_labels2], dim=1)
+            const_gcn_in1 = torch.cat([dep_gcn_out1, constituent_labels1], dim=1) 
+            const_gcn_in2 = torch.cat([dep_gcn_out2, constituent_labels2], dim=1)
             
             # Concatenate mask_batch with mask_const_batch
             mask_all1 = torch.cat([mask_batch1, mask_const_batch1], dim=1)
@@ -555,15 +563,15 @@ class Hesyfu(nn.Module):
             const_gcn_out1 = self.const_gcn(const_GCN_w_c1, const_GCN_c_w1, const_GCN_c_c1, const_gcn_in1, mask_all1).narrow(1, 0, t1)
             const_gcn_out2 = self.const_gcn(const_GCN_w_c2, const_GCN_c_w2, const_GCN_c_c2, const_gcn_in2, mask_all2).narrow(1, 0, t2)
         
-        # Apply Dependency GCN
-        if self.use_depGCN:
-            # Use Constituency GCN output as input if using it, otherwise use base embeddings
-            dep_gcn_in1 = const_gcn_out1 if self.use_constGCN else base_out1
-            dep_gcn_in2 = const_gcn_out2 if self.use_constGCN else base_out2
+#         # Apply Dependency GCN
+#         if self.use_depGCN:
+#             # Use Constituency GCN output as input if using it, otherwise use base embeddings
+#             dep_gcn_in1 = const_gcn_out1 if self.use_constGCN else base_out1
+#             dep_gcn_in2 = const_gcn_out2 if self.use_constGCN else base_out2
             
-            # Apply Dependency GCN
-            dep_gcn_out1 = self.dep_gcn(dep_gcn_in1, dependency_arcs1, dependency_labels1)
-            dep_gcn_out2 = self.dep_gcn(dep_gcn_in2, dependency_arcs2, dependency_labels2)
+#             # Apply Dependency GCN
+#             dep_gcn_out1 = self.dep_gcn(dep_gcn_in1, dependency_arcs1, dependency_labels1)
+#             dep_gcn_out2 = self.dep_gcn(dep_gcn_in2, dependency_arcs2, dependency_labels2)
             
 
         # gating
