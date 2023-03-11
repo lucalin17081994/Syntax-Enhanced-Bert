@@ -636,4 +636,10 @@ def get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward,de
         mask_out,
         mask_loop,
     ]
-
+def apply_clustering_dependency_labels(df, mapping, granularity):
+    '''
+    granularity should be either 0 or -1
+    '''
+    df['deprel_sentence1']=df['deprel_sentence1'].apply(lambda x: [mapping.get(i,i)[granularity] for i in x])
+    df['deprel_sentence2']=df['deprel_sentence2'].apply(lambda x: [mapping.get(i,i)[granularity] for i in x])
+    return df
