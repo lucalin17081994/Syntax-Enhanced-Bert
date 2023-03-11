@@ -77,6 +77,10 @@ train_data=read_dropna_encode_dataframe('SNLI_train.pickle',le,True)
 dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
 
+train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+dev_data=dev_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+
 train_data = apply_clustering_dependency_labels(train_data, dep_label_mappings, 0)
 dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, 0)
 dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, 0)
