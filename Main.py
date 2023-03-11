@@ -26,8 +26,11 @@ from Data import (
     read_data_pandas_snli, 
     read_data_pandas, 
     SNLI_Dataset,
-    get_batch_sup
+    get_batch_sup,
+    dep_label_mappings,
+    apply_clustering_dependency_labels
 )
+
 import Evaluation
 from Evaluation import log_eval_metrics,train_batch
 import torch
@@ -62,11 +65,11 @@ with ZipFile(file_name, 'r') as zipfile:
     zipfile.printdir()
     zipfile.extractall()
 
-import pickle
-#hardcoding for ease
-dep_lb_to_idx= {'det': 0, 'nsubj': 1, 'case': 2, 'nmod': 3, 'root': 4, 'amod': 5, 'compound:prt': 6, 'obl': 7, 'punct': 8, 'aux': 9, 'nmod:poss': 10, 'obj': 11, 'cop': 12, 'advcl': 13, 'cc': 14, 'conj': 15, 'expl': 16, 'xcomp': 17, 'compound': 18, 'mark': 19, 'nummod': 20, 'advmod': 21, 'acl': 22, 'acl:relcl': 23, 'cc:preconj': 24, 'fixed': 25, 'nsubj:pass': 26, 'aux:pass': 27, 'ccomp': 28, 'appos': 29, 'iobj': 30, 'det:predet': 31, 'flat': 32, 'parataxis': 33, 'obl:tmod': 34, 'obl:agent': 35, 'discourse': 36, 'nmod:npmod': 37, 'goeswith': 38, 'csubj': 39, 'list': 40, 'obl:npmod': 41, 'dep': 42, 'reparandum': 43, 'nmod:tmod': 44, 'orphan': 45, 'dislocated': 46, 'vocative': 47, 'csubj:pass': 48}
-c_c_to_idx= {'NP': 0, 'DT': 1, 'NN': 2, 'PP': 3, 'IN': 4, 'S': 5, 'VP': 6, 'VBZ': 7, 'ADJP': 8, 'VBN': 9, 'RP': 10, '.': 11, 'VBG': 12, 'PRP$': 13, ',': 14, 'ADVP': 15, 'RB': 16, 'NNS': 17, 'CC': 18, 'PRP': 19, 'VBP': 20, 'EX': 21, 'JJ': 22, 'JJR': 23, 'SBAR': 24, 'TO': 25, 'VB': 26, 'CD': 27, 'HYPH': 28, 'WHNP': 29, 'WP': 30, 'VBD': 31, 'PRT': 32, 'NML': 33, 'NNP': 34, 'WHADVP': 35, 'WRB': 36, 'WDT': 37, 'POS': 38, 'QP': 39, 'WHADJP': 40, 'MD': 41, '``': 42, 'NNPS': 43, "''": 44, 'PDT': 45, 'RBR': 46, 'JJS': 47, 'UH': 48, 'UCP': 49, 'WHPP': 50, 'AFX': 51, 'SYM': 52, 'SINV': 53, 'X': 54, 'CONJP': 55, 'NFP': 56, 'FRAG': 57, 'WP$': 58, ':': 59, '-LRB-': 60, '-RRB-': 61, 'SBARQ': 62, 'SQ': 63, 'FW': 64, 'PRN': 65, 'INTJ': 66, 'RBS': 67, '$': 68, 'ADD': 69, 'RRC': 70, 'LST': 71, 'LS': 72, 'GW': 73}
-w_c_to_idx= {'S': 0, 'NP': 1, 'DT': 2, 'NN': 3, 'PP': 4, 'IN': 5, 'VP': 6, 'VBZ': 7, 'ADJP': 8, 'VBN': 9, 'RP': 10, '.': 11, 'VBG': 12, 'PRP$': 13, ',': 14, 'ADVP': 15, 'RB': 16, 'NNS': 17, 'CC': 18, 'PRP': 19, 'VBP': 20, 'EX': 21, 'JJ': 22, 'JJR': 23, 'SBAR': 24, 'TO': 25, 'VB': 26, 'CD': 27, 'HYPH': 28, 'WHNP': 29, 'WP': 30, 'VBD': 31, 'PRT': 32, 'NML': 33, 'NNP': 34, 'WHADVP': 35, 'WRB': 36, 'WDT': 37, 'POS': 38, 'QP': 39, 'WHADJP': 40, 'MD': 41, '``': 42, 'NNPS': 43, "''": 44, 'PDT': 45, 'RBR': 46, 'JJS': 47, 'UH': 48, 'UCP': 49, 'WHPP': 50, 'AFX': 51, 'SYM': 52, 'SINV': 53, 'X': 54, 'CONJP': 55, 'NFP': 56, 'FRAG': 57, 'WP$': 58, ':': 59, '-LRB-': 60, '-RRB-': 61, 'SBARQ': 62, 'SQ': 63, 'FW': 64, 'PRN': 65, 'INTJ': 66, 'RBS': 67, '$': 68, 'ADD': 69, 'RRC': 70, 'LST': 71, 'LS': 72, 'GW': 73}
+# import pickle
+# #hardcoding for ease
+# dep_lb_to_idx= {'det': 0, 'nsubj': 1, 'case': 2, 'nmod': 3, 'root': 4, 'amod': 5, 'compound:prt': 6, 'obl': 7, 'punct': 8, 'aux': 9, 'nmod:poss': 10, 'obj': 11, 'cop': 12, 'advcl': 13, 'cc': 14, 'conj': 15, 'expl': 16, 'xcomp': 17, 'compound': 18, 'mark': 19, 'nummod': 20, 'advmod': 21, 'acl': 22, 'acl:relcl': 23, 'cc:preconj': 24, 'fixed': 25, 'nsubj:pass': 26, 'aux:pass': 27, 'ccomp': 28, 'appos': 29, 'iobj': 30, 'det:predet': 31, 'flat': 32, 'parataxis': 33, 'obl:tmod': 34, 'obl:agent': 35, 'discourse': 36, 'nmod:npmod': 37, 'goeswith': 38, 'csubj': 39, 'list': 40, 'obl:npmod': 41, 'dep': 42, 'reparandum': 43, 'nmod:tmod': 44, 'orphan': 45, 'dislocated': 46, 'vocative': 47, 'csubj:pass': 48}
+# c_c_to_idx= {'NP': 0, 'DT': 1, 'NN': 2, 'PP': 3, 'IN': 4, 'S': 5, 'VP': 6, 'VBZ': 7, 'ADJP': 8, 'VBN': 9, 'RP': 10, '.': 11, 'VBG': 12, 'PRP$': 13, ',': 14, 'ADVP': 15, 'RB': 16, 'NNS': 17, 'CC': 18, 'PRP': 19, 'VBP': 20, 'EX': 21, 'JJ': 22, 'JJR': 23, 'SBAR': 24, 'TO': 25, 'VB': 26, 'CD': 27, 'HYPH': 28, 'WHNP': 29, 'WP': 30, 'VBD': 31, 'PRT': 32, 'NML': 33, 'NNP': 34, 'WHADVP': 35, 'WRB': 36, 'WDT': 37, 'POS': 38, 'QP': 39, 'WHADJP': 40, 'MD': 41, '``': 42, 'NNPS': 43, "''": 44, 'PDT': 45, 'RBR': 46, 'JJS': 47, 'UH': 48, 'UCP': 49, 'WHPP': 50, 'AFX': 51, 'SYM': 52, 'SINV': 53, 'X': 54, 'CONJP': 55, 'NFP': 56, 'FRAG': 57, 'WP$': 58, ':': 59, '-LRB-': 60, '-RRB-': 61, 'SBARQ': 62, 'SQ': 63, 'FW': 64, 'PRN': 65, 'INTJ': 66, 'RBS': 67, '$': 68, 'ADD': 69, 'RRC': 70, 'LST': 71, 'LS': 72, 'GW': 73}
+# w_c_to_idx= {'S': 0, 'NP': 1, 'DT': 2, 'NN': 3, 'PP': 4, 'IN': 5, 'VP': 6, 'VBZ': 7, 'ADJP': 8, 'VBN': 9, 'RP': 10, '.': 11, 'VBG': 12, 'PRP$': 13, ',': 14, 'ADVP': 15, 'RB': 16, 'NNS': 17, 'CC': 18, 'PRP': 19, 'VBP': 20, 'EX': 21, 'JJ': 22, 'JJR': 23, 'SBAR': 24, 'TO': 25, 'VB': 26, 'CD': 27, 'HYPH': 28, 'WHNP': 29, 'WP': 30, 'VBD': 31, 'PRT': 32, 'NML': 33, 'NNP': 34, 'WHADVP': 35, 'WRB': 36, 'WDT': 37, 'POS': 38, 'QP': 39, 'WHADJP': 40, 'MD': 41, '``': 42, 'NNPS': 43, "''": 44, 'PDT': 45, 'RBR': 46, 'JJS': 47, 'UH': 48, 'UCP': 49, 'WHPP': 50, 'AFX': 51, 'SYM': 52, 'SINV': 53, 'X': 54, 'CONJP': 55, 'NFP': 56, 'FRAG': 57, 'WP$': 58, ':': 59, '-LRB-': 60, '-RRB-': 61, 'SBARQ': 62, 'SQ': 63, 'FW': 64, 'PRN': 65, 'INTJ': 66, 'RBS': 67, '$': 68, 'ADD': 69, 'RRC': 70, 'LST': 71, 'LS': 72, 'GW': 73}
 
 le = preprocessing.LabelEncoder()
 
@@ -74,8 +77,12 @@ train_data=read_dropna_encode_dataframe('SNLI_train.pickle',le,True)
 dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
 
+train_data = apply_clustering_dependency_labels(train_data, dep_label_mappings, 0)
+dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, 0)
+dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, 0)
+
 train, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
-    train_data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, {}
+    train_data, {}, {}, {}, {}
 )
 print("train examples", len(train))
 
@@ -96,7 +103,7 @@ model needs dependency vocab and constituency vocabs
 """
 
 # use_constGCN and use_depGCN passed to initialize_model() and collate_fn
-use_constGCN=True
+use_constGCN=False
 use_depGCN=True
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -121,7 +128,7 @@ val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, s
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 dataset_name = 'SNLI'
-run_name = "no_shuffling"
+run_name = "dependency_clustering"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
