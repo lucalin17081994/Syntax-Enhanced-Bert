@@ -30,4 +30,4 @@ Pandas df should have the following columns after parsing the data:
 12. sentence1_parse : constituency parse as a string
 13. sentence2_parse : constituency parse as a string
 
-Note: I started this project with all above features and found out later that some were unnecessary. Because I had already parsed the entire SNLI dataset, I decided to keep the result and drop the unnecessary columns during runtime. Parsing SNLI using colab T4 GPU requires high RAM + 3 hours of compute.
+Note: I started this project with all above features and found out later that some were unnecessary. Due to time limitations I decided to simply drop the columns during runtime instead of dropping them in the file itself.
