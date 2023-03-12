@@ -81,9 +81,9 @@ train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sent
 dev_data=dev_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 
-train_data = apply_clustering_dependency_labels(train_data, dep_label_mappings, 0)
-dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, 0)
-dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, 0)
+train_data = apply_clustering_dependency_labels(train_data, dep_label_mappings, -1)
+dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, -1)
+dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, -1)
 
 train, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
     train_data, {}, {}, {}, {}
@@ -139,7 +139,7 @@ batch_size = train_dataloader.batch_size
 n_epochs = 2
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 3e-5
-lr_other = 1e-4
+lr_other = 1e-3
 
 if is_syntax_enhanced:
     optimizer_bert = torch.optim.AdamW(model.bert.parameters(), lr=learning_rate, eps=1e-8)
