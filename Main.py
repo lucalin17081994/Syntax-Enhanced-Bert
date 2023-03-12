@@ -81,14 +81,22 @@ train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sent
 dev_data=dev_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 
-train_data = apply_clustering_dependency_labels(train_data, dep_label_mappings, -1)
-dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, -1)
-dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, -1)
+# train_data = apply_clustering_dependency_labels(train_data, dep_label_mappings, -1)
+# dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, -1)
+# dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, -1)
+
+help_data=read_dropna_encode_dataframe('HELP_train.pickle',le,False)
+help_data = help_data[['gold_label','text_sentence1','text_sentence2',	'heads_sentence1',	'heads_sentence2',	'deprel_sentence1',	'deprel_sentence2',	'sentence1_parse',	'sentence2_parse']]
 
 train, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
     train_data, {}, {}, {}, {}
 )
 print("train examples", len(train))
+
+help, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
+    help_data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
+)
+print("help examples", len(help))
 
 
 dev, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
@@ -107,7 +115,7 @@ model needs dependency vocab and constituency vocabs
 """
 
 # use_constGCN and use_depGCN passed to initialize_model() and collate_fn
-use_constGCN=False
+use_constGCN=True
 use_depGCN=True
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -119,7 +127,9 @@ tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 # Create train dataloader
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
+combined = ConcatDataset([train_dataset,help_dataset])
+train_dataloader = torch.utils.data.DataLoader(combined, batch_size=32, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
@@ -132,7 +142,7 @@ val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, s
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 dataset_name = 'SNLI'
-run_name = "dependency_clustering"
+run_name = "help_augmentation"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
