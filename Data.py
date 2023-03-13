@@ -216,7 +216,7 @@ def read_dropna_encode_dataframe(file_name, le, fit, is_hans=False, is_mnli=Fals
     
     """
     # Read the dataframe from the pickle file, drop rows with missing values, and filter out invalid gold labels
-    df = pd.read_pickle(file_name).dropna().query('gold_label != "-"')
+    df = pd.read_pickle(file_name).dropna(subset=['gold_label']).query('gold_label != "-"')
 
     # Fit the label encoder to the gold labels, if requested
     if fit:
