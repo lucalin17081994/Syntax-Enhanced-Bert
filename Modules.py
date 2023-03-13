@@ -93,13 +93,13 @@ class ConstGCN(nn.Module):
     ):
     super(ConstGCN, self).__init__()
     # hidden_dim=768
-    gcn_dim=350
+    
     self.non_linearity=non_linearity
     # ConstGCN
     # boundary bridging
     self.const_gcn_w_c = ConstGCN_Bridge(
       hidden_dim,
-      gcn_dim,
+      hidden_dim,
       w_c_vocab_size,
       in_arcs=True,
       out_arcs=True,
@@ -115,7 +115,7 @@ class ConstGCN(nn.Module):
     # reverse boundary bridging
     self.const_gcn_c_w = ConstGCN_Bridge(
       hidden_dim,
-      gcn_dim,
+      hidden_dim,
       w_c_vocab_size,
       in_arcs=True,
       out_arcs=True,
@@ -131,7 +131,7 @@ class ConstGCN(nn.Module):
     # self graph
     self.const_gcn_c_c = ConstGCN_Bridge(
       hidden_dim,
-      gcn_dim,
+      hidden_dim,
       c_c_vocab_size,
       in_arcs=True,
       out_arcs=True,
