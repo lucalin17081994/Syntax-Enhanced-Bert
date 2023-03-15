@@ -246,6 +246,26 @@ def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_
             'val_acc_hard': val_accuracy_hard,
             'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
         })
+        
+def log_eval_metrics_sick(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced):
+    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device, is_syntax_enhanced)
+    if is_syntax_enhanced:
+        wandb.log({
+            'train_losses': np.mean(train_losses),
+            'train_accuracies': np.mean(train_accuracies),
+            'val_loss': val_loss.item(),
+            'val_accuracy': val_accuracy.item(),
+            'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
+            'LR_others': optimizer_other.state_dict()['param_groups'][0]['lr']
+        })
+    else:
+        wandb.log({
+            'train_losses': np.mean(train_losses),
+            'train_accuracies': np.mean(train_accuracies),
+            'val_loss': val_loss.item(),
+            'val_accuracy': val_accuracy.item(),
+            'LR_bert': optimizer_bert.state_dict()['param_groups'][0]['lr'],
+        })
 
 def eval_batch_store_preds(model, data_batch, loss_fn, device, is_syntax_enhanced):
     """
