@@ -154,7 +154,7 @@ batch_size = train_dataloader.batch_size
 n_epochs = 2
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 3e-5
-lr_other = 1e-3
+lr_other = 5e-4
 
 if is_syntax_enhanced:
     optimizer_bert = torch.optim.AdamW(model.bert.parameters(), lr=learning_rate, eps=1e-8)
