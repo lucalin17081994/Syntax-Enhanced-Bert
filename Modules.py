@@ -662,10 +662,12 @@ class CA_Hesyfu(nn.Module):
             gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
             gcn_in1, gcn_in2 = gcn_out1, gcn_out2
 #         gcn_out1, gcn_out2 = self.hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
-    
+        mask_all1 = torch.cat([mask_batch1, mask_const_batch1], dim=1)
+        mask_all2 = torch.cat([mask_batch2, mask_const_batch2], dim=1)
+        
         # Pass sentences through co-attention layer
-        data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_batch1, mask_batch2)
-
+#         data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_batch1, mask_batch2)
+        data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_all1, mask_all2)
         # Create final representation
         final_representation = torch.cat((data1, data2, torch.abs(data1 - data2), torch.mul(data1, data2)), dim=1)
         out = self.fc(final_representation)
