@@ -553,8 +553,10 @@ class Hesyfu(nn.Module):
             mask_all2 = torch.cat([mask_batch2, mask_const_batch2], dim=1)
             
             # Apply Constituency GCN
-            const_gcn_out1 = self.const_gcn(const_GCN_w_c1, const_GCN_c_w1, const_GCN_c_c1, const_gcn_in1, mask_all1).narrow(1, 0, t1)
-            const_gcn_out2 = self.const_gcn(const_GCN_w_c2, const_GCN_c_w2, const_GCN_c_c2, const_gcn_in2, mask_all2).narrow(1, 0, t2)
+            const_gcn_out1 = self.const_gcn(const_GCN_w_c1, const_GCN_c_w1, const_GCN_c_c1, const_gcn_in1, mask_all1)
+            const_gcn_out2 = self.const_gcn(const_GCN_w_c2, const_GCN_c_w2, const_GCN_c_c2, const_gcn_in2, mask_all2)
+#             const_gcn_out1 = self.const_gcn(const_GCN_w_c1, const_GCN_c_w1, const_GCN_c_c1, const_gcn_in1, mask_all1).narrow(1, 0, t1)
+#             const_gcn_out2 = self.const_gcn(const_GCN_w_c2, const_GCN_c_w2, const_GCN_c_c2, const_gcn_in2, mask_all2).narrow(1, 0, t2)
         
         # Apply Dependency GCN
         if self.use_depGCN:
