@@ -85,18 +85,18 @@ dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_senten
 # dev_data = apply_clustering_dependency_labels(dev_data, dep_label_mappings, -1)
 # dev_data2 = apply_clustering_dependency_labels(dev_data2, dep_label_mappings, -1)
 
-help_data=read_dropna_encode_dataframe('HELP_train.pickle',le,False)
-help_data = help_data[['gold_label','text_sentence1','text_sentence2',	'heads_sentence1',	'heads_sentence2',	'deprel_sentence1',	'deprel_sentence2',	'sentence1_parse',	'sentence2_parse']]
+# help_data=read_dropna_encode_dataframe('HELP_train.pickle',le,False)
+# help_data = help_data[['gold_label','text_sentence1','text_sentence2',	'heads_sentence1',	'heads_sentence2',	'deprel_sentence1',	'deprel_sentence2',	'sentence1_parse',	'sentence2_parse']]
 
 train, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
     train_data, {}, {}, {}, {}
 )
 print("train examples", len(train))
 
-help, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
-    help_data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
-)
-print("help examples", len(help))
+# help, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
+#     help_data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
+# )
+# print("help examples", len(help))
 
 
 dev, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
@@ -132,9 +132,9 @@ torch.cuda.manual_seed(42)
 
 # Create train dataloader
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
-help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
-combined = ConcatDataset([train_dataset,help_dataset])
-train_dataloader = torch.utils.data.DataLoader(combined, batch_size=32, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+# help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
+# combined = ConcatDataset([train_dataset,help_dataset])
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
@@ -154,7 +154,7 @@ batch_size = train_dataloader.batch_size
 n_epochs = 2
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 3e-5
-lr_other = 1e-4
+lr_other = 5e-4
 
 if is_syntax_enhanced:
     optimizer_bert = torch.optim.AdamW(model.bert.parameters(), lr=learning_rate, eps=1e-8)
