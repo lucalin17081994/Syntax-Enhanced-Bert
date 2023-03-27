@@ -1,6 +1,10 @@
 import math
-import re
 import nltk
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import re
+
 
 def tree_kernel_from_NLTK_string(tree1, tree2):
     """
