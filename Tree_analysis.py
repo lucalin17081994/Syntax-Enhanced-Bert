@@ -111,3 +111,29 @@ def calculate_dep_tree_similarity(row):
     tree1 = create_dependency_tree(row['heads_sentence1'], row['deprel_sentence1'])
     tree2 = create_dependency_tree(row['heads_sentence2'], row['deprel_sentence2'])
     return normalized_tree_kernel(tree1, tree2)
+def plot_tree_similarity(data, labels, model_name, dataset):
+    # Concatenate the data columns into a single DataFrame
+    combined_data = pd.concat(data, axis=1)
+
+    # Compute the frequency distributions of the data
+    bins = np.linspace(combined_data.min().min(), combined_data.max().max(), 20)
+
+    # Create a line plot of the frequency distributions
+    for i, data_col in enumerate(data):
+        freq, _ = np.histogram(data_col, bins=bins, density=True)
+        plt.plot(bins[:-1], freq, label=labels[i])
+
+    # Set the axis labels and title
+    plt.xlabel('Value')
+    plt.ylabel('Density')
+    plt.title('Tree similarity by prediction, ' + model_name + ', ' + dataset)
+
+    # Add a legend
+    plt.legend()
+
+    # Show the plot
+    plt.show()
+
+    # Print mean values for each data column
+    for i, data_col in enumerate(data):
+        print(f"{labels[i]} Mean Tree Distance: {data_col.mean():.2f}")
