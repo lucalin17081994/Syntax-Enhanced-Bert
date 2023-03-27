@@ -130,7 +130,7 @@ def plot_tree_similarity(data, labels, model_name, dataset):
     # Set the axis labels and title
     plt.xlabel('Value')
     plt.ylabel('Density')
-    plt.title('Tree similarity by prediction, ' + model_name + ', ' + dataset)
+    plt.title('Tree similarity, ' + model_name + ', ' + dataset)
 
     # Add a legend
     plt.legend()
