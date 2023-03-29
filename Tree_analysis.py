@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
-
+from IPython.display import display, HTML, SVG
+from graphviz import Digraph
 
 def tree_kernel_from_NLTK_string(tree1, tree2):
     """
@@ -141,3 +142,50 @@ def plot_tree_similarity(data, labels, model_name, dataset):
     # Print mean values for each data column
     for i, data_col in enumerate(data):
         print(f"{labels[i]} Mean Tree Distance: {data_col.mean():.2f}")
+def visualize_dependency_tree(doc):
+    dot = graphviz.Digraph()
+    for sentence in doc.sentences:
+        for word in sentence.words:
+            dot.node(str(word.id), word.text)
+            if word.head > 0:
+                dot.edge(str(word.head), str(word.id), label=word.deprel)
+    return dot
+def display_svg_side_by_side(svg1, svg2, title1, title2,heuristic,subcase):
+    svg1_data = svg1.data
+    svg2_data = svg2.data
+    table = f"""
+    <table>
+        <tr>
+            <th>Heuristic: {heuristic}, </th>
+            <th>Subcase: {subcase}</th>
+        </tr>
+        <tr>
+            <th>S1: {title1}</th>
+            <th>S2: {title2}</th>
+        </tr>
+        <tr>
+            <td>{svg1_data}</td>
+            <td>{svg2_data}</td>
+        </tr>
+    </table>
+    """
+    display(HTML(table))
+
+
+#constituency tree
+def tree_to_svg(tree):
+    def add_subtree(node, dot):
+        node_id = f"{id(node)}"
+        if isinstance(node, str):
+            dot.node(node_id, node)
+        else:
+            label = node.label()
+            dot.node(node_id, label)
+            for child in node:
+                child_id = add_subtree(child, dot)
+                dot.edge(node_id, child_id)
+        return node_id
+
+    dot = Digraph()
+    add_subtree(tree, dot)
+    return SVG(dot.pipe(format='svg'))
