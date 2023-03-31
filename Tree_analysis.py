@@ -142,7 +142,7 @@ def plot_tree_similarity(data, labels, model_name, dataset):
     # Print mean values for each data column
     for i, data_col in enumerate(data):
         print(f"{labels[i]} Mean Tree Distance: {data_col.mean():.2f}")
-def visualize_dependency_tree(doc):
+def dependency_tree_to_graphviz(doc):
     dot = graphviz.Digraph()
     for sentence in doc.sentences:
         for word in sentence.words:
