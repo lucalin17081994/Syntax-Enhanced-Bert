@@ -5,7 +5,6 @@ Studying the effect of enhancing Bert-based models with syntax on the task of Na
 
 Notebook Links:
 
-- <a href="https://colab.research.google.com/drive/1i-i4Ct4NbJbbvZFQ0lnlbyBsrfjLK6o2?usp=sharing" target="_blank">Bert baseline model</a>
 - <a href="https://colab.research.google.com/drive/1YLzZESUyOR1mSlqUYb1zoz4uHfMMWfCA?usp=sharing" target="_blank">Parsing SNLI using stanza</a>
 - <a href="https://colab.research.google.com/drive/1ojdWbJXgqBNc2vdzo-3fDR_2XyididsR?usp=sharing" target="_blank">Parse HANS dataset using stanza</a>
 - <a href="https://colab.research.google.com/drive/1yGxFyEvTUY_ucoIZdyhfVIOdiJcgY49t?usp=sharing" target="_blank">Parse MED dataset using stanza</a>
