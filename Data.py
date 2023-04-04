@@ -5,13 +5,13 @@ apply_clustering_dependency_labels(df, mapping, granularity)
 encode_gold_labels(df: pandas.core.frame.DataFrame, le: sklearn.preprocessing._label.LabelEncoder) 
     -- encode gold labels (e.g. 'neutral' to 2)
 get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN) 
-    -- collate function for dataloader
+    -- collate function for dataloader, originally from (Fei et al. 2021, https://github.com/scofield7419/hesyfu)
 get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN) 
     -- apply to premise and hypothesis separately
 get_const_adj_BE(batch, max_batch_len, max_degr_in, max_degr_out, forward, device) 
     -- get features for constGCN
 get_sentence_features(line, text_name, parse_name, heads_name, deprel_name, w_c_to_idx, c_c_to_idx, dep_lb_to_idx) 
-    -- get vocabs + dependency features + constituency features
+    -- get vocabs + dependency features + constituency features, originally from (Fei et al. 2021, https://github.com/scofield7419/hesyfu)
 read_data_pandas(df: pandas.core.frame.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict) 
     -- extract features from pandas
 read_data_pandas_snli(df: pandas.core.frame.DataFrame, w_c_to_idx: dict, c_c_to_idx: dict, dep_lb_to_idx: dict, premises_dict: dict) 
