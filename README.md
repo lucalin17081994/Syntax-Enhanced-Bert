@@ -5,14 +5,11 @@ Studying the effect of enhancing Bert-based models with syntax on the task of Na
 
 Notebook Links:
 
-- <a href="https://colab.research.google.com/drive/1YLzZESUyOR1mSlqUYb1zoz4uHfMMWfCA?usp=sharing" target="_blank">Parsing SNLI using stanza</a>
-- <a href="https://colab.research.google.com/drive/1ojdWbJXgqBNc2vdzo-3fDR_2XyididsR?usp=sharing" target="_blank">Parse HANS dataset using stanza</a>
-- <a href="https://colab.research.google.com/drive/1yGxFyEvTUY_ucoIZdyhfVIOdiJcgY49t?usp=sharing" target="_blank">Parse MED dataset using stanza</a>
-- <a href="https://colab.research.google.com/drive/1xPgVxDzchv7ZBsKzJ4VoAdnp23q-tkNu#scrollTo=yNak14_2ke5Y" target="_blank">CAHesyfu notebook</a>
-- <a href="https://colab.research.google.com/drive/1920fAqJ-niy9F-w9AZeoCFfbbWxwX4D8#scrollTo=AK6wfzlM6aRD" target="_blank">Evaluate networks and data exploration</a>
-
-Legacy notebooks:
-- <a href="https://colab.research.google.com/drive/1nqADVKidmMbjSwc-pehpFHqEkIDpmg21#scrollTo=6vKDK5Xx_z_D" target="_blank">Evaluate trained networks on SNLI/MNLI/HANS/MED</a>
+- <a href="https://colab.research.google.com/drive/1YLzZESUyOR1mSlqUYb1zoz4uHfMMWfCA?usp=sharing" target="_blank">Parsing datasets using stanza, from textfile</a>
+- <a href="https://colab.research.google.com/drive/1ojdWbJXgqBNc2vdzo-3fDR_2XyididsR?usp=sharing" target="_blank">Parse HANS dataset using stanza, from huggingface datasets</a>
+- <a href="https://colab.research.google.com/drive/1yGxFyEvTUY_ucoIZdyhfVIOdiJcgY49t?usp=sharing" target="_blank">Parse MED dataset using stanza, from textfile</a>
+- <a href="https://colab.research.google.com/drive/1xPgVxDzchv7ZBsKzJ4VoAdnp23q-tkNu#scrollTo=yNak14_2ke5Y" target="_blank">training notebook</a>
+- <a href="https://colab.research.google.com/drive/1920fAqJ-niy9F-w9AZeoCFfbbWxwX4D8#scrollTo=AK6wfzlM6aRD" target="_blank">evaluation notebook</a>
 
 Pandas df should have the following columns after parsing the data:
 1. gold label
@@ -30,3 +27,5 @@ Pandas df should have the following columns after parsing the data:
 13. sentence2_parse : constituency parse as a string
 
 Note: I started this project with all above features and found out later that some were unnecessary. Due to time limitations I decided to simply drop the columns during runtime instead of dropping them in the file itself.
+
+
