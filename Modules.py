@@ -1,3 +1,17 @@
+'''
+This module contains all syntax-enhanced models.
+Classes:
+  'Attn' -- co-attention module from (He et al. 2020, https://github.com/heqi2015/CA_GCN)
+  'ConstGCN' -- constGCN model from (Fei et al. 2021, https://github.com/scofield7419/hesyfu)
+  'ConstGCN_Bridge' -- abstraction of constGCN
+  'DepGCN' -- depGCN model from (Fei et al. 2021, https://github.com/scofield7419/hesyfu)
+  'Hesyfu' -- Heterogeneous syntax fuser model from (Fei et al. 2021, https://github.com/scofield7419/hesyfu)
+  'CA_Hesyfu' -- combination of BERT + Hesyfu + co-attention for task of NLI 
+  'WarmupLinearSchedule' -- BERT warmup linear scheduler
+Additional Functions:
+  'initialize_model' -- initialize model: BERT-base-uncased, constGCN, depGCN, or CA_Hesyfu, return it together with model name
+  'count_parameters' -- return total number of parameters in the model
+'''
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
