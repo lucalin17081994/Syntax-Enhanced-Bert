@@ -1,3 +1,50 @@
+'''
+Module containing training and evaluation functions:
+    
+compute_accuracy_batch(prediction, target): 
+    Computes the accuracy of a batch of predictions against the target labels.
+eval_batch(model, data_batch, loss_fn, device, is_syntax_enhanced): 
+    Evaluates a batch of data with the given model, loss function and device, and returns the accuracy and loss.
+eval_batch_store_preds(model, data_batch, loss_fn, device, is_syntax_enhanced): 
+    Evaluates a batch of data with the given model, loss function and device, and stores the model's predictions.
+eval_model(model, dataloader, loss_fn, device, is_syntax_enhanced): 
+    Evaluates the given model on the given dataloader with the given loss function and device, and returns the accuracy and loss.
+eval_model_store_preds(model, dataloader, loss_fn, device, is_syntax_enhanced=False): 
+    Evaluates the given model on the given dataloader with the given loss function and device, and stores the model's predictions.
+get_accuracy(preds, true): 
+    Computes the accuracy of the given predictions against the true labels.
+get_hans_results(model_name, file_name, preds, true): 
+    Computes and logs the results of the HANS dataset evaluation for the given model's predictions.
+get_hans_results_subcases(original, preds, true): 
+    Computes and logs the results of the HANS dataset evaluation for the given model's predictions, broken down by subcases.
+get_model_results_snli_mnli(model_name, true_snli_test, true_snli_test_hard, true_mnli_m, true_mnli_mm): 
+    Computes and logs the results of the SNLI and MNLI datasets evaluation for the given model's predictions.
+get_pickled_predictions(file_name): 
+    Loads the model's predictions from the given pickle file.
+get_preds_from_logits(logits, add_contradiction_and_neutral): 
+    Computes the model's predictions from the given logits.
+log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced): 
+    Computes and logs the evaluation metrics of the given model on the validation dataset.
+log_eval_metrics_sick(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced): 
+    Computes and logs the evaluation metrics of the given model on the SICK dataset.
+get_med_results(model_name, file_name, preds, true): 
+    Computes and logs the results of the MED dataset evaluation for the given model's predictions.
+med_results_linguistic_phenomena(model_name, df, preds, true): 
+    Computes and logs the results of the MED dataset evaluation for the given model's predictions, broken down by linguistic phenomena.
+    analyze_downward_cases(df): 
+        Computes and logs the results of the downward cases of the MED dataset evaluation.
+    analyze_non_monotone_cases(df): 
+        Computes and logs the results of the non-monotone cases of the MED dataset evaluation.
+    analyze_upward_cases(df): 
+        Computes and logs the results of the upward cases of the MED dataset evaluation.
+pickle_predictions(file_name, preds): 
+    Stores the model's predictions to a pickle file.
+train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device, is_syntax_enhanced): 
+    Trains the given model on a batch of data with the given loss function, optimizer and
+
+'''
+
+
 import numpy as np
 import pandas as pd
 import torch
