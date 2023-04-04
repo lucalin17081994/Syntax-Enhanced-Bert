@@ -1,3 +1,22 @@
+'''
+This module converts Stanza's trees to 
+functions:
+    visualization: 
+        tree_to_svg(tree) -- convert constituency tree to svg
+        display_svg_side_by_side(svg1, svg2, title1, title2, heuristic, subcase) -- Display the trees side by side to compare
+        dependency_tree_to_graphviz(doc) -- convert dependency tree to graphviz object
+        plot_tree_similarity(data, labels, model_name, dataset) -- plot Probability Density Functions
+    calculating similarity measures:
+    dependency trees:
+        calculate_dep_tree_similarity(row) -- calculate the dependency tree similarity with normalized tree kernel
+        create_dependency_tree(heads, rels) -- create dependency tree object with stanza's parsed features
+        normalized_tree_kernel(tree1, tree2) -- calculate NTK for dependency trees using tree_kernel(node1, node2)
+        tree_kernel(node1, node2) -- calculate tree kernel measure for dependency trees
+    constituency trees:
+        calculate_const_tree_similarity(df) -- calculate constituency tree similarity with tree_kernel_from_NLTK_string
+        tree_kernel_from_NLTK_string(tree1, tree2) -- calculate NTK for constituency trees
+    
+'''
 import math
 import nltk
 import numpy as np
