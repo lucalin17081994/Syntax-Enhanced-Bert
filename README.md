@@ -11,7 +11,7 @@ Notebook Links:
 - <a href="https://colab.research.google.com/drive/1xPgVxDzchv7ZBsKzJ4VoAdnp23q-tkNu#scrollTo=yNak14_2ke5Y" target="_blank">training notebook</a>
 - <a href="https://colab.research.google.com/drive/1920fAqJ-niy9F-w9AZeoCFfbbWxwX4D8#scrollTo=AK6wfzlM6aRD" target="_blank">evaluation notebook</a>
 
-![PDF File](filename.pdf)
+![Functional View](Functional_view.drawio.pdf)
 
 
 
