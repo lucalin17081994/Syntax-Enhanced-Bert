@@ -486,7 +486,7 @@ class DepGCN(nn.Module):
         self.dep_attn = nn.Linear(dep_dim+in_features, out_features)
 #         self.dep_attn = nn.Linear(in_features, out_features)
         self.dep_fc = nn.Linear(dep_dim, out_features)
-        self.layernorm = nn.LayerNorm(768)
+        self.layernorm = nn.LayerNorm(dep_dim)
         self.relu = nn.ReLU()
 
     
