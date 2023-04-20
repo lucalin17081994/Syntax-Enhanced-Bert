@@ -715,3 +715,55 @@ dep_label_mappings = {'det': ('det',),
     'goeswith': ('fixed','mod'),
     'csubj:pass': ('nsubj:pass',)
     }
+class Glove_Dataset(Dataset):
+    '''
+    Dataset with premise_dictionary functionality. 
+    '''
+    def __init__(self, X,premises_dict) -> None:
+        # Extracting Y and sentence keys
+        self.Y = [x[0] for x in X]
+        keys = [x[1] for x in X]
+        
+        # Extracting sentence 1 features
+        sentence1_features = [premises_dict[x] for x in keys]
+        self.text1 = [x[0] for x in sentence1_features]
+        self.dep_head1 = [x[1] for x in sentence1_features]
+        self.dep_lb1 = [x[2] for x in sentence1_features]
+        self.word_to_constituents1 = [x[3] for x in sentence1_features]
+        self.constituents_to_constituents1 = [x[4] for x in sentence1_features]
+        self.number_constituents1 = [x[5] for x in sentence1_features]
+
+        # Extracting sentence 2 features
+        self.text2 = [x[2] for x in X]
+        self.dep_head2 = [x[3] for x in X]
+        self.dep_lb2 = [x[4] for x in X]
+        self.word_to_constituents2 = [x[5] for x in X]
+        self.constituents_to_constituents2 = [x[6] for x in X]
+        self.number_constituents2 = [x[7] for x in X]
+
+        
+        
+    def __len__(self) -> int:
+        return len(self.Y)
+        
+    def __getitem__(self, idx: int):
+        # Returning all features for a given index
+        return (
+            self.Y[idx],
+            # Sentence 1 features
+            self.text1[idx],
+            self.dep_head1[idx],
+            self.dep_lb1[idx],
+            self.word_to_constituents1[idx],
+            self.constituents_to_constituents1[idx],
+            self.number_constituents1[idx],
+
+            # Sentence 2 features
+            self.text2[idx],
+            self.dep_head2[idx],
+            self.dep_lb2[idx],
+            self.word_to_constituents2[idx],
+            self.constituents_to_constituents2[idx],
+            self.number_constituents2[idx],
+
+        )
