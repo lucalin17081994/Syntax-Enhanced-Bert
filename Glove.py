@@ -211,9 +211,9 @@ np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
-use_constGCN=False
+use_constGCN=True
 use_depGCN=False
-is_syntax_enhanced= False
+is_syntax_enhanced= True
 hidden_dim=300
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, glove,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
