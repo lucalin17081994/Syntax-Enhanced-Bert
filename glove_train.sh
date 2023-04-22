@@ -13,8 +13,7 @@ module load Python/3.10.4-GCCcore-11.3.0
 pip install --upgrade scikit-learn
 pip install --upgrade pandas
 pip install wandb
-pip install torch -U
-pip install torchtext==0.13.0
+
 
 
 
