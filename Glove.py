@@ -92,32 +92,38 @@ wandb.login(key='a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
 run_name="BERT"
 run=wandb.init(reinit=True)
 
-import torchtext
-glove = torchtext.vocab.GloVe(name='6B', dim=100)
+def load_glove_embeddings(file_path, embedding_dim):
+    embeddings = {}
+    with open(file_path, 'r') as f:
+        for line in f:
+            tmp = line.split()
+            word = tmp[0]
+            vector = tmp[1:]
+            embeddings[word]=vector
+    return embeddings
 
-glove.vectors = torch.cat([glove.vectors, torch.zeros((2, glove.dim))])
-glove.itos.append('<UNK>')
-glove.itos.append('<PAD>')
-glove.stoi['<UNK>'] = len(glove.stoi)
-glove.stoi['<PAD>'] = len(glove.stoi)
+
+glove_file_path = "glove.6B.100d.txt"  # Update this path to your local file
+embedding_dim = 100
+glove_embeddings = load_glove_embeddings(glove_file_path, embedding_dim)
+
+embedding_dim = len(list(glove_embeddings.values())[0])
+vocab_size = len(glove_embeddings) + 2 # Add 2 for the <UNK> and <PAD> tokens
+word_to_index = {}
+embedding_matrix = np.zeros((len(glove_embeddings) + 2, embedding_dim))
+index_to_word = {}
+for i, word in enumerate(['<PAD>', '<UNK>'] + list(glove_embeddings.keys())):
+    if word in glove_embeddings:
+        embedding_matrix[i] = glove_embeddings[word]
+    else:
+        embedding_matrix[i] = np.random.normal(scale=0.6, size=(embedding_dim,))
+    word_to_index[word] = i
+    index_to_word[i] = word  # Add this line
 
 
-# Update the vectors of the unknown and padding tokens
-glove.vectors[-2] = torch.from_numpy(np.random.normal(scale=0.6, size=(glove.dim,)))
-glove.vectors[-1] = torch.zeros((glove.dim,))
-
-# Test
-print(glove.stoi['<UNK>'])
-print(glove.itos[glove.stoi['<UNK>']])
-print(glove.vectors[glove.stoi['<UNK>']])
-print(glove.stoi['<PAD>'])
-print(glove.itos[glove.stoi['<PAD>']])
-print(glove.vectors[glove.stoi['<PAD>']])
-print(len(glove.stoi))
-
-"""# Glove model"""
 
 from Modules import Hesyfu, Attn, masked_softmax
+"""# Glove model"""
 
 class Glove_Hesyfu(nn.Module):
     def __init__(
@@ -137,12 +143,16 @@ class Glove_Hesyfu(nn.Module):
 
         self.device = device
         self.glove=glove
-        self.vocab_size = len(glove.stoi)  # Number of words in the vocabulary
+        self.vocab_size = glove.shape[0]  # Number of words in the vocabulary
 
-        self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.dim,padding_idx=glove.stoi['<PAD>'])
-        self.embedding_layer.weight.data.copy_(glove.vectors)
+        # self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.dim, padding_idx=glove.stoi['<PAD>'])
+        self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.shape[1], padding_idx=word_to_index['<PAD>'])
+        # self.embedding_layer.weight.data.copy_(glove.vectors)
 
-        self.lstm = nn.LSTM(input_size=glove.dim, hidden_size=hidden_dim, num_layers=L, bidirectional=True, dropout=0.2)
+        self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim, num_layers=L, bidirectional=True, dropout=0.2)
+
+        # self.soft_attn=Soft_Attn(hidden_dim *2, hidden_dim *2)
+
 
         self.dep_tag_vocab_size = dep_tag_vocab_size
         self.w_c_vocab_size = w_c_vocab_size
@@ -192,6 +202,7 @@ class Glove_Hesyfu(nn.Module):
         lstm_out2, _ = self.lstm(glove_embedding2)
         
         if self.use_constGCN or self.use_depGCN:
+            # gcn_in1, gcn_in2 = self.soft_attn(lstm_out1, lstm_out2, mask_batch1, mask_batch2)
             gcn_in1, gcn_in2 = lstm_out1,lstm_out2
             for hesyfu in self.hesyfu_layers:
                 gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
@@ -211,11 +222,12 @@ np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
-use_constGCN=True
+use_constGCN=False
 use_depGCN=False
-is_syntax_enhanced= True
+is_syntax_enhanced= False
 hidden_dim=300
-model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, glove,
+
+model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
 from Modules import count_parameters
 count_parameters(model)
@@ -224,15 +236,15 @@ model
 """# collate FN"""
 
 from Data import get_const_adj_BE
-def sentences_to_indices(sentences, glove):
+def sentences_to_indices(sentences, word_to_index):
     batch_indices = []
     for sentence in sentences:
         words = [word.lower() for word in sentence]  # Lower case all words
-        indices = [glove.stoi[word] if word in glove.stoi else glove.stoi["<UNK>"] for word in words]
+        indices = [word_to_index.get(word, word_to_index["<UNK>"]) for word in words]
         batch_indices.append(indices)
     return batch_indices
 
-def pad_sequences(batch_indices, padding_value=glove.stoi['<PAD>']):
+def pad_sequences(batch_indices, padding_value=word_to_index['<PAD>']):
     max_length = max([len(indices) for indices in batch_indices])
     padded_batch = []
     for indices in batch_indices:
@@ -252,13 +264,12 @@ def get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN):
     #labels
     labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
 
-    #input tensors for GLOVE
     sentences = [sample[1] for sample in batch]
-    batch_indices = sentences_to_indices(sentences, glove)
+    batch_indices = sentences_to_indices(sentences, word_to_index)
     padded_batch = pad_sequences(batch_indices)
     input_tensor1 = torch.tensor(padded_batch, dtype=torch.long).to(device)
     sentences = [sample[7] for sample in batch]
-    batch_indices = sentences_to_indices(sentences, glove)
+    batch_indices = sentences_to_indices(sentences, word_to_index)
     padded_batch = pad_sequences(batch_indices)
     input_tensor2 = torch.tensor(padded_batch, dtype=torch.long).to(device)
 
@@ -383,7 +394,7 @@ run_name = "experiment_glove"
 # is_syntax_enhanced=False
 # Hyperparameters
 batch_size = train_dataloader.batch_size
-n_epochs = 5
+n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 1e-3
 
