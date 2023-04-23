@@ -87,10 +87,7 @@ print("dev2 examples", len(dev2))
 
 
 
-import wandb
-wandb.login(key='a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
-run_name="BERT"
-run=wandb.init(reinit=True)
+
 
 def load_glove_embeddings(file_path, embedding_dim):
     embeddings = {}
@@ -388,6 +385,8 @@ val_dataset2 = Glove_Dataset(dev2, premises_dict)
 val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 """## wandb, hyperparameters, optimizers, schedulers"""
+import wandb
+wandb.login(key='a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
 
 dataset_name = 'SNLI'
 run_name = "experiment_glove"
