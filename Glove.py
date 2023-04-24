@@ -228,7 +228,7 @@ np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
-use_constGCN=False
+use_constGCN=True
 use_depGCN=True
 is_syntax_enhanced= True
 hidden_dim=100
@@ -404,7 +404,7 @@ run_name = "experiment_glove"
 batch_size = train_dataloader.batch_size
 n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 1e-3
+learning_rate = 5e-3
 
    
 
