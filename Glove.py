@@ -229,7 +229,7 @@ torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
 use_constGCN=False
-use_depGCN=False
+use_depGCN=True
 is_syntax_enhanced= False
 hidden_dim=100
 
