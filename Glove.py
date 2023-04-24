@@ -144,10 +144,18 @@ class Glove_Hesyfu(nn.Module):
 
         # self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.dim, padding_idx=glove.stoi['<PAD>'])
         self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.shape[1], padding_idx=word_to_index['<PAD>'])
-        # self.embedding_layer.weight.data.copy_(glove.vectors)
+        self.embedding_layer.weight.data.copy_(glove)
 
         self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim, num_layers=L, bidirectional=True, dropout=0.2)
+        def init_weights(m):
+            if isinstance(m, nn.LSTM):
+                for name, param in m.named_parameters():
+                    if 'weight_ih' in name or 'weight_hh' in name:
+                        nn.init.xavier_uniform_(param.data)
+                    elif 'bias' in name:
+                        nn.init.zeros_(param.data)
 
+        self.lstm.apply(init_weights)
         # self.soft_attn=Soft_Attn(hidden_dim *2, hidden_dim *2)
 
 
