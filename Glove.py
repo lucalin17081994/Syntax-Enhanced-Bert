@@ -229,8 +229,8 @@ torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
 use_constGCN=False
-use_depGCN=True
-is_syntax_enhanced= True
+use_depGCN=False
+is_syntax_enhanced= False
 hidden_dim=100
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
@@ -404,7 +404,7 @@ run_name = "experiment_glove"
 batch_size = train_dataloader.batch_size
 n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 5e-3
+learning_rate = 1e-3
 
    
 
