@@ -383,7 +383,7 @@ torch.cuda.manual_seed(42)
 
 # Create train dataloader
 train_dataset = Glove_Dataset(train, premises_dict)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = Glove_Dataset(dev, premises_dict)
