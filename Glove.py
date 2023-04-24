@@ -230,7 +230,7 @@ torch.cuda.manual_seed(42)
 L=1
 use_constGCN=False
 use_depGCN=True
-is_syntax_enhanced= False
+is_syntax_enhanced= True
 hidden_dim=100
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
