@@ -222,7 +222,7 @@ L=1
 use_constGCN=False
 use_depGCN=False
 is_syntax_enhanced= False
-hidden_dim=100
+hidden_dim=200
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -395,7 +395,7 @@ run_name = "experiment_glove"
 batch_size = train_dataloader.batch_size
 n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 1e-3
+learning_rate = 3e-3
 
    
 
