@@ -149,7 +149,7 @@ class Glove_Hesyfu(nn.Module):
         self.embedding_layer.weight.data.copy_(torch.tensor(glove, dtype=torch.float))
 
 
-        self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim, num_layers=L, bidirectional=True, batch_first=True)
+        self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim*2, num_layers=L, bidirectional=False, batch_first=True)
         def init_weights(m):
             if isinstance(m, nn.LSTM):
                 for name, param in m.named_parameters():
@@ -203,21 +203,21 @@ class Glove_Hesyfu(nn.Module):
         glove_embedding2 = self.embedding_layer(input_tensor2)
 
         #pack
-        lengths_batch1 = lengths_batch1.cpu()
-        lengths_batch2 = lengths_batch2.cpu()
-        packed_embeddings1 = pack_padded_sequence(glove_embedding1, lengths_batch1, batch_first=True, enforce_sorted=False)
-        packed_embeddings2 = pack_padded_sequence(glove_embedding2, lengths_batch2, batch_first=True, enforce_sorted=False)
+#         lengths_batch1 = lengths_batch1.cpu()
+#         lengths_batch2 = lengths_batch2.cpu()
+#         packed_embeddings1 = pack_padded_sequence(glove_embedding1, lengths_batch1, batch_first=True, enforce_sorted=False)
+#         packed_embeddings2 = pack_padded_sequence(glove_embedding2, lengths_batch2, batch_first=True, enforce_sorted=False)
       
         
         # Pass sentences through GCN's
         # gcn_in1, gcn_in2 = embedded_input1,embedded_input2#self.linear(embedded_input1), self.linear(embedded_input2)
 
         #lstm
-        lstm_out1, _ = self.lstm(packed_embeddings1)
-        lstm_out2, _ = self.lstm(packed_embeddings2)
+        lstm_out1, _ = self.lstm(glove_embedding1)
+        lstm_out2, _ = self.lstm(glove_embedding2)
         
-        lstm_out1, _ = pad_packed_sequence(lstm_out1, batch_first=True)
-        lstm_out2, _ = pad_packed_sequence(lstm_out2, batch_first=True)
+#         lstm_out1, _ = pad_packed_sequence(lstm_out1, batch_first=True)
+#         lstm_out2, _ = pad_packed_sequence(lstm_out2, batch_first=True)
         
         if self.use_constGCN or self.use_depGCN:
             # gcn_in1, gcn_in2 = self.soft_attn(lstm_out1, lstm_out2, mask_batch1, mask_batch2)
@@ -243,7 +243,7 @@ L=1
 use_constGCN=False
 use_depGCN=False
 is_syntax_enhanced= False
-hidden_dim=300
+hidden_dim=150
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
