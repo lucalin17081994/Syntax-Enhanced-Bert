@@ -93,15 +93,15 @@ def load_glove_embeddings(file_path, embedding_dim):
     embeddings = {}
     with open(file_path, 'r') as f:
         for line in f:
-            tmp =  line.split(' ')
+            tmp =  line.split()
             word = tmp[0]
             vector = tmp[1:]
             embeddings[word]=vector
     return embeddings
 
 
-glove_file_path = "glove.6B.100d.txt"  # Update this path to your local file
-embedding_dim = 100
+glove_file_path = "glove.6B.300d.txt"  # Update this path to your local file
+embedding_dim = 300
 glove_embeddings = load_glove_embeddings(glove_file_path, embedding_dim)
 
 embedding_dim = len(list(glove_embeddings.values())[0])
@@ -231,7 +231,7 @@ L=1
 use_constGCN=False
 use_depGCN=False
 is_syntax_enhanced= False
-hidden_dim=100
+hidden_dim=300
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
