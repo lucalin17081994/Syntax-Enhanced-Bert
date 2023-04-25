@@ -240,8 +240,8 @@ np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
-use_constGCN=True
-use_depGCN=False
+use_constGCN=False
+use_depGCN=True
 is_syntax_enhanced= True
 hidden_dim=100
 
