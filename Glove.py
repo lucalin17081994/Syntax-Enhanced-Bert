@@ -93,7 +93,7 @@ def load_glove_embeddings(file_path, embedding_dim):
     embeddings = {}
     with open(file_path, 'r') as f:
         for line in f:
-            tmp = line.split()
+            tmp =  line.split(' ')
             word = tmp[0]
             vector = tmp[1:]
             embeddings[word]=vector
