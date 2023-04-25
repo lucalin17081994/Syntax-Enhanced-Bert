@@ -149,7 +149,7 @@ class Glove_Hesyfu(nn.Module):
         self.embedding_layer.weight.data.copy_(torch.tensor(glove, dtype=torch.float))
 
 
-        self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim*2, num_layers=L, bidirectional=False, batch_first=True)
+        self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim, num_layers=L, bidirectional=True, batch_first=True)
         def init_weights(m):
             if isinstance(m, nn.LSTM):
                 for name, param in m.named_parameters():
@@ -243,7 +243,7 @@ L=1
 use_constGCN=False
 use_depGCN=False
 is_syntax_enhanced= False
-hidden_dim=150
+hidden_dim=300
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
