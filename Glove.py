@@ -100,8 +100,8 @@ def load_glove_embeddings(file_path, embedding_dim):
     return embeddings
 
 
-glove_file_path = "glove.6B.100d.txt"  # Update this path to your local file
-embedding_dim = 100
+glove_file_path = "glove.840B.300d.txt"  # Update this path to your local file
+embedding_dim = 300
 glove_embeddings = load_glove_embeddings(glove_file_path, embedding_dim)
 
 embedding_dim = len(list(glove_embeddings.values())[0])
@@ -228,10 +228,10 @@ np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
-use_constGCN=True
+use_constGCN=False
 use_depGCN=False
-is_syntax_enhanced= True
-hidden_dim=100
+is_syntax_enhanced= False
+hidden_dim=300
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -383,7 +383,7 @@ torch.cuda.manual_seed(42)
 
 # Create train dataloader
 train_dataset = Glove_Dataset(train, premises_dict)
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=256, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = Glove_Dataset(dev, premises_dict)
