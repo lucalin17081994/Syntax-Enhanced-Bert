@@ -416,7 +416,7 @@ run_name = "experiment_glove"
 batch_size = train_dataloader.batch_size
 n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 3e-3
+learning_rate = 5e-4
 
    
 
