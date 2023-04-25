@@ -203,6 +203,8 @@ class Glove_Hesyfu(nn.Module):
         glove_embedding2 = self.embedding_layer(input_tensor2)
 
         #pack
+        lengths_batch1 = lengths_batch1.cpu()
+        lengths_batch2 = lengths_batch2.cpu()
         packed_embeddings1 = pack_padded_sequence(glove_embedding1, lengths_batch1, batch_first=True, enforce_sorted=False)
         packed_embeddings2 = pack_padded_sequence(glove_embedding2, lengths_batch2, batch_first=True, enforce_sorted=False)
       
