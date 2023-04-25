@@ -236,12 +236,12 @@ class Glove_Hesyfu(nn.Module):
         out = self.fc(final_representation)
 
         return out
-np.random.seed(42)
-torch.manual_seed(42)
-torch.cuda.manual_seed(42)
+np.random.seed(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 L=1
-use_constGCN=False
-use_depGCN=True
+use_constGCN=True
+use_depGCN=False
 is_syntax_enhanced= True
 hidden_dim=100
 
@@ -416,7 +416,7 @@ run_name = "experiment_glove"
 batch_size = train_dataloader.batch_size
 n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 1e-3
+learning_rate = 3e-3
 
    
 
