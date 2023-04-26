@@ -100,8 +100,8 @@ def load_glove_embeddings(file_path, embedding_dim):
     return embeddings
 
 
-glove_file_path = "glove.6B.100d.txt"  # Update this path to your local file
-embedding_dim = 100
+glove_file_path = "glove.6B.300d.txt"  # Update this path to your local file
+embedding_dim = 300
 glove_embeddings = load_glove_embeddings(glove_file_path, embedding_dim)
 
 embedding_dim = len(list(glove_embeddings.values())[0])
@@ -241,9 +241,9 @@ torch.manual_seed(42)
 torch.cuda.manual_seed(42)
 L=1
 use_constGCN=False
-use_depGCN=True
-is_syntax_enhanced= True
-hidden_dim=100
+use_depGCN=False
+is_syntax_enhanced= False
+hidden_dim=300
 
 model = Glove_Hesyfu(hidden_dim, L, len(dep_lb_to_idx), len(w_c_to_idx), len(c_c_to_idx), device, embedding_matrix,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -416,7 +416,7 @@ run_name = "experiment_glove"
 batch_size = train_dataloader.batch_size
 n_epochs = 4
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 5e-4
+learning_rate = 1e-3
 
    
 
