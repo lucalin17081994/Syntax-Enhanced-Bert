@@ -236,12 +236,12 @@ class Glove_Hesyfu(nn.Module):
         out = self.fc(final_representation)
 
         return out
-np.random.seed(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
-L=2
+np.random.seed(42)
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+L=1
 use_constGCN=False
-use_depGCN=False
+use_depGCN=True
 is_syntax_enhanced= False
 hidden_dim=150
 
