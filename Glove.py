@@ -239,7 +239,7 @@ class Glove_Hesyfu(nn.Module):
 np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-L=1
+L=2
 use_constGCN=False
 use_depGCN=False
 is_syntax_enhanced= False
