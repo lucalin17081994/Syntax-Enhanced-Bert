@@ -136,7 +136,30 @@ def pad_sequences(batch_indices, padding_value=word_to_index['<PAD>']):
         padded_indices = indices + [padding_value] * (max_length - len(indices))
         padded_batch.append(padded_indices)
     return padded_batch
- def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim):
+def get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim):
+    
+    # Extract sentence data from batch, 
+
+    sentence1_data_indices = [1, 2, 3, 4, 5, 6]
+    sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim)
+    sentence2_data_indices = [7, 8, 9, 10, 11, 12]
+    sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim)
+
+    #labels
+    labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
+
+    sentences = [sample[1] for sample in batch]
+    batch_indices = sentences_to_indices(sentences, word_to_index)
+    padded_batch = pad_sequences(batch_indices)
+    input_tensor1 = torch.tensor(padded_batch, dtype=torch.long).to(device)
+    sentences = [sample[7] for sample in batch]
+    batch_indices = sentences_to_indices(sentences, word_to_index)
+    padded_batch = pad_sequences(batch_indices)
+    input_tensor2 = torch.tensor(padded_batch, dtype=torch.long).to(device)
+
+    # Return the data
+    return sentence1_batch_data, sentence2_batch_data, labels_batch, input_tensor1, input_tensor2
+def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim):
     hidden_d = hidden_dim*2
     max_sent_len = max(len(d[indices[0]]) for d in batch)
     max_const_len = max(d[indices[5]] for d in batch)
