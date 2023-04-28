@@ -15,7 +15,7 @@ class Glove_Hesyfu(nn.Module):
         c_c_vocab_size,
         device,
         glove,
-        word_to_index
+        word_to_index,
         use_constGCN=True,
         use_depGCN=True,
         
@@ -256,3 +256,28 @@ def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, 
         const_mask,
         plain_sentences
     ]
+def load_glove_embeddings_and_mappings(file_path, embedding_dim):
+    # Load GloVe embeddings from file
+    embeddings = {}
+    with open(file_path, 'r') as f:
+        for line in f:
+            tmp = line.split()
+            word = tmp[0]
+            vector = tmp[1:]
+            embeddings[word] = vector
+
+    # Create an embedding matrix and initialize it with GloVe embeddings
+    embedding_dim = len(list(embeddings.values())[0])
+    vocab_size = len(embeddings) + 2  # Add 2 for the <UNK> and <PAD> tokens
+    word_to_index = {}
+    embedding_matrix = np.zeros((len(embeddings) + 2, embedding_dim))
+    index_to_word = {}
+    for i, word in enumerate(['<PAD>', '<UNK>'] + list(embeddings.keys())):
+        if word in embeddings:
+            embedding_matrix[i] = embeddings[word]
+        else:
+            embedding_matrix[i] = np.random.normal(scale=0.6, size=(embedding_dim,))
+        word_to_index[word] = i
+        index_to_word[i] = word
+
+    return word_to_index, index_to_word, embedding_matrix
