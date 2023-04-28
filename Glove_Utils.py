@@ -133,7 +133,7 @@ def sentences_to_indices(sentences, word_to_index):
         batch_indices.append(indices)
     return batch_indices
 
-def pad_sequences(batch_indices, padding_value=word_to_index['<PAD>']):
+def pad_sequences(batch_indices, padding_value):
     max_length = max([len(indices) for indices in batch_indices])
     padded_batch = []
     for indices in batch_indices:
