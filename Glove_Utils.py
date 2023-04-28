@@ -120,9 +120,9 @@ class Glove_Hesyfu(nn.Module):
 
         return out
         
-def init_glove_model(hidden_dim, L, len_dep_lb_to_idx, len_w_c_to_idx, len_c_c_to_idx, device, embedding_matrix,
+def init_glove_model(hidden_dim, L, len_dep_lb_to_idx, len_w_c_to_idx, len_c_c_to_idx, device, embedding_matrix, word_to_index,
                   use_constGCN, use_depGCN):
-    model = Glove_Hesyfu(hidden_dim, L, len_dep_lb_to_idx, len_w_c_to_idx, len_c_c_to_idx, device, embedding_matrix,
+    model = Glove_Hesyfu(hidden_dim, L, len_dep_lb_to_idx, len_w_c_to_idx, len_c_c_to_idx, device, embedding_matrix, word_to_index,
                   use_constGCN=use_constGCN, use_depGCN=use_depGCN)
     params = count_parameters(model)
     return model, params
