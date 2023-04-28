@@ -15,6 +15,7 @@ class Glove_Hesyfu(nn.Module):
         c_c_vocab_size,
         device,
         glove,
+        word_to_index
         use_constGCN=True,
         use_depGCN=True,
         
