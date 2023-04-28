@@ -4,6 +4,7 @@ import torch
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import numpy as np
+from some_module import compute_accuracy_batch
 
 
 class Glove_Hesyfu(nn.Module):
@@ -282,3 +283,50 @@ def load_glove_embeddings_and_mappings(file_path, embedding_dim):
         index_to_word[i] = word
 
     return word_to_index, index_to_word, embedding_matrix
+def train_batch(model, data_batch, loss_fn, optimizer, device):
+    model.train()
+    sentence1_data, sentence2_data, labels, input_tensor1, input_tensor2 = data_batch
+
+    
+    out=model(sentence1_data, sentence2_data, input_tensor1, input_tensor2)
+    
+    # Backward pass and optimization
+    optimizer.zero_grad()
+
+    loss = loss_fn(out, labels)
+    loss.backward()
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+    optimizer.step()
+    
+    # Compute accuracy
+    accuracy_batch = compute_accuracy_batch(out, labels)
+    
+    return loss.cpu().detach().numpy(), accuracy_batch
+def eval_batch(model, data_batch, loss_fn, device):
+    sentence1_data, sentence2_data, labels, input_tensor1, input_tensor2 = data_batch
+    out=model(sentence1_data, sentence2_data, input_tensor1, input_tensor2)
+    loss = loss_fn(out, labels)
+    accuracy_batch = compute_accuracy_batch(out, labels)
+    return loss.item(), accuracy_batch
+def eval_model(model, dataloader, loss_fn, device):
+    model.eval()
+    losses, accuracies = [], []
+    with torch.no_grad():
+        for batch in dataloader:
+            loss_batch, accuracy_batch = eval_batch(model, batch, loss_fn, device)
+            losses.append(loss_batch)
+            accuracies.append(accuracy_batch)
+    return np.mean(losses), np.mean(accuracies)
+def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer, device, wandb):
+    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
+    val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device)
+    
+    wandb.log({
+        'train_losses': np.mean(train_losses),
+        'train_accuracies': np.mean(train_accuracies),
+        'val_loss': val_loss.item(),
+        'val_accuracy': val_accuracy.item(),
+        'val_loss_hard': val_loss_hard,
+        'val_acc_hard': val_accuracy_hard,
+        'LR': optimizer.state_dict()['param_groups'][0]['lr'],
+    })
