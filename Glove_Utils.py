@@ -3,6 +3,7 @@ from Modules import count_parameters
 import torch
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+import numpy as np
 
 
 class Glove_Hesyfu(nn.Module):
