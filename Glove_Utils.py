@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import numpy as np
-from some_module import compute_accuracy_batch
+from Evaluation import compute_accuracy_batch
 
 
 class Glove_Hesyfu(nn.Module):
