@@ -136,7 +136,21 @@ def pad_sequences(batch_indices, padding_value=word_to_index['<PAD>']):
         padded_indices = indices + [padding_value] * (max_length - len(indices))
         padded_batch.append(padded_indices)
     return padded_batch
- features if necessary
+ def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim):
+    hidden_d = hidden_dim*2
+    max_sent_len = max(len(d[indices[0]]) for d in batch)
+    max_const_len = max(d[indices[5]] for d in batch)
+    lengths = []
+    batch_len = len(batch)
+
+    #only create dep arcs and labels tensors if needed for depGCN
+    dependency_arcs = torch.zeros((batch_len, max_sent_len, max_sent_len), requires_grad=False).to(device) if use_depGCN else None
+    dependency_labels = torch.zeros((batch_len, max_sent_len), requires_grad=False, dtype=torch.long).to(device) if use_depGCN else None
+
+    mask_batch = torch.zeros((batch_len, max_sent_len), requires_grad=False).to(device)
+    bert_embs = torch.zeros((batch_len, max_sent_len, hidden_d), requires_grad=False).to(device)
+    
+    #only get constituent features if necessary
     constituent_labels = torch.zeros((batch_len, max_const_len, hidden_d), requires_grad=False).to(device) if use_constGCN else None
     const_mask = torch.zeros((batch_len, max_const_len), requires_grad=False).to(device) if use_constGCN else None
     plain_sentences = [d[indices[0]] for d in batch]
