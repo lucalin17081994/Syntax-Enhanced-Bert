@@ -7,20 +7,14 @@ import numpy as np
 from Evaluation import compute_accuracy_batch
 
 
-class Glove_Hesyfu(nn.Module):
+class Glove_HOB(nn.Module):
     def __init__(
         self,
         hidden_dim,
         L,
-        dep_tag_vocab_size,
-        w_c_vocab_size,
-        c_c_vocab_size,
         device,
         glove,
         word_to_index,
-        use_constGCN=True,
-        use_depGCN=True,
-        
     ):
         super(Glove_Hesyfu, self).__init__()
 
@@ -45,88 +39,24 @@ class Glove_Hesyfu(nn.Module):
         self.lstm.apply(init_weights)
         # self.soft_attn=Soft_Attn(hidden_dim *2, hidden_dim *2)
 
-
-        self.dep_tag_vocab_size = dep_tag_vocab_size
-        self.w_c_vocab_size = w_c_vocab_size
-        self.c_c_vocab_size = c_c_vocab_size
         
-        self.dropout = nn.Dropout(p=0.1)
-        self.embedding_dropout = nn.Dropout(p=0.2)
-        
-        self.use_constGCN=use_constGCN
-        self.use_depGCN=use_depGCN
+        self.fc = nn.Linear(hidden_dim * 2, 3)
+    def forward(self, input_tensor1, input_tensor2):
 
-        if self.use_constGCN or self.use_depGCN:
-            # Hesyfu
-            self.hesyfu_layers = nn.ModuleList()
-            for _ in range(1):
-                hesyfu = Hesyfu(
-                    hidden_dim*2,
-                    dep_tag_vocab_size,
-                    w_c_vocab_size,
-                    c_c_vocab_size, 
-                    use_constGCN,
-                    use_depGCN,
-                    self.device
-                )
-                self.hesyfu_layers.append(hesyfu)
-
-        # Co-attention
-        self.co_attn = Attn(hidden_dim*2, hidden_dim*2)
-        
-        self.fc = nn.Linear(hidden_dim * 4 * 2, 3)
-    def forward(self, sentence1_data, sentence2_data, input_tensor1, input_tensor2):
-        # Unpack data
-        (mask_batch1, lengths_batch1, dependency_arcs1, dependency_labels1, constituent_labels1,
-        const_GCN_w_c1, const_GCN_c_w1, const_GCN_c_c1, mask_const_batch1, plain_sentences1) = sentence1_data
-        (mask_batch2, lengths_batch2, dependency_arcs2, dependency_labels2, constituent_labels2,
-        const_GCN_w_c2, const_GCN_c_w2, const_GCN_c_c2, mask_const_batch2, plain_sentences2) = sentence2_data
-
-        #word embeddings
-        glove_embedding1 = self.embedding_layer(input_tensor1)
+        #word embeddings, 2nd sentence is hypothesis, so keep 2
         glove_embedding2 = self.embedding_layer(input_tensor2)
 
-        #pack
-#         lengths_batch1 = lengths_batch1.cpu()
-#         lengths_batch2 = lengths_batch2.cpu()
-#         packed_embeddings1 = pack_padded_sequence(glove_embedding1, lengths_batch1, batch_first=True, enforce_sorted=False)
-#         packed_embeddings2 = pack_padded_sequence(glove_embedding2, lengths_batch2, batch_first=True, enforce_sorted=False)
-      
-        
-        # Pass sentences through GCN's
-        # gcn_in1, gcn_in2 = embedded_input1,embedded_input2#self.linear(embedded_input1), self.linear(embedded_input2)
-
         #lstm
-        lstm_out1, _ = self.lstm(glove_embedding1)
         lstm_out2, _ = self.lstm(glove_embedding2)
         
-#         lstm_out1, _ = pad_packed_sequence(lstm_out1, batch_first=True)
-#         lstm_out2, _ = pad_packed_sequence(lstm_out2, batch_first=True)
-        
-        if self.use_constGCN or self.use_depGCN:
-            # gcn_in1, gcn_in2 = self.soft_attn(lstm_out1, lstm_out2, mask_batch1, mask_batch2)
-            gcn_in1, gcn_in2 = lstm_out1,lstm_out2
-            for hesyfu in self.hesyfu_layers:
-                gcn_out1, gcn_out2 = hesyfu(gcn_in1, gcn_in2, sentence1_data, sentence2_data)
-                gcn_in1, gcn_in2 = gcn_out1, gcn_out2
-            co_attn_in1, co_attn_in2 = gcn_out1,gcn_out2
-        else:
-            co_attn_in1, co_attn_in2 = lstm_out1,lstm_out2
-        # Pass sentences through co-attention layer
-
-        data1, data2 = self.co_attn(co_attn_in1, co_attn_in2, mask_batch1, mask_batch2)
-        # Create final representation
-        final_representation = torch.cat((data1, data2, data1 - data2, torch.mul(data1, data2)), dim=1)
-        out = self.fc(final_representation)
-
+        out = self.fc(lstm_out2)
         return out
         
-def init_glove_model(hidden_dim, L, len_dep_lb_to_idx, len_w_c_to_idx, len_c_c_to_idx, device, embedding_matrix, word_to_index,
-                  use_constGCN, use_depGCN):
-    model = Glove_Hesyfu(hidden_dim, L, len_dep_lb_to_idx, len_w_c_to_idx, len_c_c_to_idx, device, embedding_matrix, word_to_index,
-                  use_constGCN=use_constGCN, use_depGCN=use_depGCN)
+def init_glove_HOB(hidden_dim, L, device, embedding_matrix, word_to_index):
+    model = Glove_Hesyfu(hidden_dim, L, device, embedding_matrix, word_to_index)
     params = count_parameters(model)
     return model, params
+
 from Data import get_const_adj_BE
 def sentences_to_indices(sentences, word_to_index):
     batch_indices = []
