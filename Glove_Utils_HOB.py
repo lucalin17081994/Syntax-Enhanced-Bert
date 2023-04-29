@@ -11,7 +11,6 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 import numpy as np
 from Evaluation import compute_accuracy_batch
 
-
 class Glove_HOB(nn.Module):
     def __init__(
         self,
@@ -104,6 +103,7 @@ def load_glove_embeddings_and_mappings(file_path, embedding_dim):
         index_to_word[i] = word
 
     return word_to_index, index_to_word, embedding_matrix
+
 def train_batch(model, data_batch, loss_fn, optimizer, device):
     model.train()
     labels, input_tensor2, indices = data_batch
@@ -122,12 +122,21 @@ def train_batch(model, data_batch, loss_fn, optimizer, device):
     accuracy_batch = compute_accuracy_batch(out, labels)
     
     return loss.cpu().detach().numpy(), accuracy_batch
+
+
+def compute_accuracy_get_wrong_indices(prediction, target, indices):
+    y_pred = torch.argmax(prediction, dim=1)
+    y_target = torch.argmax(target, dim=1)
+    correct = (y_pred == y_target)
+    accuracy= correct.float().mean().item()
+    wrong_indices = indices[~correct].tolist()
+    return accuracy, wrong_indices
 def eval_batch(model, data_batch, loss_fn, device):
     labels, input_tensor2, indices = data_batch
     out=model(input_tensor2)
     loss = loss_fn(out, labels)
-    accuracy_batch = compute_accuracy_batch(out, labels)
-    return loss.item(), accuracy_batch
+    accuracy_batch, wrong_indices = compute_accuracy_get_wrong_indices(out, labels,indices)
+    return loss.item(), accuracy_batch, wrong_indices
 def eval_model(model, dataloader, loss_fn, device):
     model.eval()
     losses, accuracies = [], []
