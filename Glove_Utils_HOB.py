@@ -139,15 +139,16 @@ def eval_batch(model, data_batch, loss_fn, device):
     return loss.item(), accuracy_batch, wrong_indices
 def eval_model(model, dataloader, loss_fn, device):
     model.eval()
-    losses, accuracies = [], []
+    losses, accuracies, wrong_indices = [], [],[]
     with torch.no_grad():
         for batch in dataloader:
-            loss_batch, accuracy_batch = eval_batch(model, batch, loss_fn, device)
+            loss_batch, accuracy_batch, wrong = eval_batch(model, batch, loss_fn, device)
             losses.append(loss_batch)
             accuracies.append(accuracy_batch)
-    return np.mean(losses), np.mean(accuracies)
+            wrong_indices.extend(wrong)
+    return np.mean(losses), np.mean(accuracies), wrong_indices
 def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer, device, wandb):
-    val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
+    val_loss, val_accuracy, wrong_indices = eval_model(model, val_dataloader, loss_fn, device)
     
     wandb.log({
         'train_losses': np.mean(train_losses),
@@ -156,7 +157,7 @@ def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss
         'val_accuracy': val_accuracy.item(),
         'LR': optimizer.state_dict()['param_groups'][0]['lr'],
     })
-    
+    return wrong_indices
 def get_batch_sup_HOB(batch, device, hidden_dim, word_to_index):
 
     #labels
