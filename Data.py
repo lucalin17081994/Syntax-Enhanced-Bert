@@ -787,7 +787,7 @@ class Glove_HOB(Dataset):
             self.Y[idx],
             # Sentence 2 features
             self.text2[idx],
-            self.index
+            self.index[idx]
         )
 def read_data_HOB(df: pd.DataFrame):
     data = []
