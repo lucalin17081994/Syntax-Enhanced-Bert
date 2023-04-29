@@ -45,7 +45,7 @@ class Glove_HOB(nn.Module):
 
         
         self.fc = nn.Linear(hidden_dim * 2, 3)
-    def forward(self, input_tensor1, input_tensor2):
+    def forward(self, input_tensor2):
 
         #word embeddings, 2nd sentence is hypothesis, so keep 2
         glove_embedding2 = self.embedding_layer(input_tensor2)
@@ -77,121 +77,7 @@ def pad_sequences(batch_indices, padding_value):
         padded_indices = indices + [padding_value] * (max_length - len(indices))
         padded_batch.append(padded_indices)
     return padded_batch
-def get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim, word_to_index):
-    
-    # Extract sentence data from batch, 
 
-    sentence1_data_indices = [1, 2, 3, 4, 5, 6]
-    sentence1_batch_data = get_batch_sup_sentence(batch, sentence1_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim)
-    sentence2_data_indices = [7, 8, 9, 10, 11, 12]
-    sentence2_batch_data = get_batch_sup_sentence(batch, sentence2_data_indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim)
-
-    #labels
-    labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
-
-    sentences = [sample[1] for sample in batch]
-    batch_indices = sentences_to_indices(sentences, word_to_index)
-    padded_batch = pad_sequences(batch_indices, word_to_index['<PAD>'])
-    input_tensor1 = torch.tensor(padded_batch, dtype=torch.long).to(device)
-    sentences = [sample[7] for sample in batch]
-    batch_indices = sentences_to_indices(sentences, word_to_index)
-    padded_batch = pad_sequences(batch_indices,word_to_index['<PAD>'])
-    input_tensor2 = torch.tensor(padded_batch, dtype=torch.long).to(device)
-
-    # Return the data
-    return sentence1_batch_data, sentence2_batch_data, labels_batch, input_tensor1, input_tensor2
-def get_batch_sup_sentence(batch, indices, device, dep_lb_to_idx, use_constGCN, use_depGCN, hidden_dim):
-    hidden_d = hidden_dim*2
-    max_sent_len = max(len(d[indices[0]]) for d in batch)
-    max_const_len = max(d[indices[5]] for d in batch)
-    lengths = []
-    batch_len = len(batch)
-
-    #only create dep arcs and labels tensors if needed for depGCN
-    dependency_arcs = torch.zeros((batch_len, max_sent_len, max_sent_len), requires_grad=False).to(device) if use_depGCN else None
-    dependency_labels = torch.zeros((batch_len, max_sent_len), requires_grad=False, dtype=torch.long).to(device) if use_depGCN else None
-
-    mask_batch = torch.zeros((batch_len, max_sent_len), requires_grad=False).to(device)
-    bert_embs = torch.zeros((batch_len, max_sent_len, hidden_d), requires_grad=False).to(device)
-    
-    #only get constituent features if necessary
-    constituent_labels = torch.zeros((batch_len, max_const_len, hidden_d), requires_grad=False).to(device) if use_constGCN else None
-    const_mask = torch.zeros((batch_len, max_const_len), requires_grad=False).to(device) if use_constGCN else None
-    plain_sentences = [d[indices[0]] for d in batch]
-
-
-    for d, data in enumerate(batch):
-        num_const = data[indices[5]]
-        if use_constGCN:
-            const_mask[d][:num_const] = 1.0
-
-        for w, word in enumerate(data[indices[0]]):
-            mask_batch[d, w] = 1.0
-
-            if use_depGCN:
-                dependency_labels[d, w] = dep_lb_to_idx[data[indices[2]][w]]
-                dependency_arcs[d, w, w] = 1
-
-                if data[indices[1]][w] != 0:
-                    dep_head = data[indices[1]][w] - 1
-                    dependency_arcs[d, w, dep_head] = 1
-                    dependency_arcs[d, dep_head, w] = 1
-
-        lengths.append(len(data[indices[0]]))
-    
-    if use_constGCN:
-        batch_w_c = []
-        for d in batch:
-            batch_w_c.append([])
-            for i in d[indices[3]]:
-                batch_w_c[-1].append([])
-                for j in i:
-                    batch_w_c[-1][-1].append(j)
-
-        batch_c_c = []
-        for d in batch:
-            batch_c_c.append([])
-            for i in d[indices[3]]:
-                batch_c_c[-1].append([])
-                for j in i:
-                    batch_c_c[-1][-1].append(j)
-
-        for d, _ in enumerate(batch):
-            for t, trip in enumerate(batch_w_c[d]):
-                for e, elem in enumerate(trip):
-                    if elem > 499:
-                        batch_w_c[d][t][e] = (elem - 500) + max_sent_len
-
-            for t, trip in enumerate(batch_c_c[d]):
-                for e, elem in enumerate(trip):
-                    if elem > 499:
-                        batch_c_c[d][t][e] = (elem - 500) + max_sent_len
-
-    const_GCN_w_c = get_const_adj_BE(
-        batch_w_c, max_sent_len + max_const_len, 2, 2, forward=True, device=device
-    ) if use_constGCN else None
-    const_GCN_c_w = get_const_adj_BE(
-        batch_w_c, max_sent_len + max_const_len, 5, 20, forward=False, device=device
-    ) if use_constGCN else None
-    const_GCN_c_c = get_const_adj_BE(
-        batch_c_c, max_sent_len + max_const_len, 2, 7, forward=True, device=device
-    ) if use_constGCN else None
-
-
-    lengths_batch = torch.LongTensor(lengths).to(device)
-
-    return [
-        mask_batch,
-        lengths_batch,
-        dependency_arcs,
-        dependency_labels,
-        constituent_labels,
-        const_GCN_w_c,
-        const_GCN_c_w,
-        const_GCN_c_c,
-        const_mask,
-        plain_sentences
-    ]
 def load_glove_embeddings_and_mappings(file_path, embedding_dim):
     # Load GloVe embeddings from file
     embeddings = {}
@@ -219,10 +105,9 @@ def load_glove_embeddings_and_mappings(file_path, embedding_dim):
     return word_to_index, index_to_word, embedding_matrix
 def train_batch(model, data_batch, loss_fn, optimizer, device):
     model.train()
-    sentence1_data, sentence2_data, labels, input_tensor1, input_tensor2 = data_batch
-
+    labels, input_tensor2, indices = data_batch
     
-    out=model(sentence1_data, sentence2_data, input_tensor1, input_tensor2)
+    out=model(input_tensor2)
     
     # Backward pass and optimization
     optimizer.zero_grad()
@@ -237,8 +122,8 @@ def train_batch(model, data_batch, loss_fn, optimizer, device):
     
     return loss.cpu().detach().numpy(), accuracy_batch
 def eval_batch(model, data_batch, loss_fn, device):
-    sentence1_data, sentence2_data, labels, input_tensor1, input_tensor2 = data_batch
-    out=model(sentence1_data, sentence2_data, input_tensor1, input_tensor2)
+    labels, input_tensor2, indices = data_batch
+    out=model(input_tensor2)
     loss = loss_fn(out, labels)
     accuracy_batch = compute_accuracy_batch(out, labels)
     return loss.item(), accuracy_batch
@@ -251,9 +136,8 @@ def eval_model(model, dataloader, loss_fn, device):
             losses.append(loss_batch)
             accuracies.append(accuracy_batch)
     return np.mean(losses), np.mean(accuracies)
-def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer, device, wandb):
+def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer, device, wandb):
     val_loss, val_accuracy = eval_model(model, val_dataloader, loss_fn, device)
-    val_loss_hard, val_accuracy_hard = eval_model(model, val_hard_dataloader, loss_fn, device)
     
     wandb.log({
         'train_losses': np.mean(train_losses),
@@ -261,7 +145,6 @@ def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_
         'val_loss': val_loss.item(),
         'val_accuracy': val_accuracy.item(),
         'val_loss_hard': val_loss_hard,
-        'val_acc_hard': val_accuracy_hard,
         'LR': optimizer.state_dict()['param_groups'][0]['lr'],
     })
     
