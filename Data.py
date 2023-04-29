@@ -775,7 +775,8 @@ class Glove_HOB(Dataset):
         # Extracting Y and sentence keys
         self.Y = [x[0] for x in X]        
         # Extracting sentence 2 features
-        self.text2 = [x[2] for x in X]
+        self.text2 = [x[1] for x in X]
+        self.index=[x[2] for x in X]
         
     def __len__(self) -> int:
         return len(self.Y)
@@ -785,7 +786,8 @@ class Glove_HOB(Dataset):
         return (
             self.Y[idx],
             # Sentence 2 features
-            self.text2[idx]
+            self.text2[idx],
+            self.index
         )
 def read_data_HOB(df: pd.DataFrame):
     data = []
