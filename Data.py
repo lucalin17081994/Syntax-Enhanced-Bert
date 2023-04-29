@@ -787,21 +787,17 @@ class Glove_HOB(Dataset):
             # Sentence 2 features
             self.text2[idx]
         )
-def read_data_HOB(df: pd.DataFrame) -> Tuple[List[List[Any]], dict, dict, dict]:
-    
+def read_data_HOB(df: pd.DataFrame):
     data = []
-    
     for i in range(len(df)):
-        
         # get the current line of df
         line = df.iloc[i]
-
         # get features for the second sentence
         text2 = line['text_sentence2']
         # get the gold label for the line
         label = line['gold_label']
-      
+        index=df.index[i]
         # add the line's data to the data list
-        data.append([label, text2])
+        data.append([label, text2, index])
 
     return data
