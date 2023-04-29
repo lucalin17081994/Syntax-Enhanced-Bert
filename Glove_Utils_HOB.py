@@ -145,7 +145,6 @@ def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss
         'train_accuracies': np.mean(train_accuracies),
         'val_loss': val_loss.item(),
         'val_accuracy': val_accuracy.item(),
-        'val_loss_hard': val_loss_hard,
         'LR': optimizer.state_dict()['param_groups'][0]['lr'],
     })
     
