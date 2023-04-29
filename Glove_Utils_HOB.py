@@ -49,10 +49,11 @@ class Glove_HOB(nn.Module):
 
         #word embeddings, 2nd sentence is hypothesis, so keep 2
         glove_embedding2 = self.embedding_layer(input_tensor2)
-
+        batch_size=input_tensor2.shape[0]
         #lstm
         lstm_out2, _ = self.lstm(glove_embedding2)
-        
+   
+        lstm_out2 = torch.mean(lstm_out2, dim=1)
         out = self.fc(lstm_out2)
         return out
         
