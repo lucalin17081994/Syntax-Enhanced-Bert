@@ -16,7 +16,7 @@ class Glove_HOB(nn.Module):
         glove,
         word_to_index,
     ):
-        super(Glove_Hesyfu, self).__init__()
+        super(Glove_HOB, self).__init__()
 
         self.device = device
         self.glove=glove
@@ -25,7 +25,6 @@ class Glove_HOB(nn.Module):
         # self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.dim, padding_idx=glove.stoi['<PAD>'])
         self.embedding_layer = torch.nn.Embedding(self.vocab_size, glove.shape[1], padding_idx=word_to_index['<PAD>'])
         self.embedding_layer.weight.data.copy_(torch.tensor(glove, dtype=torch.float))
-
 
         self.lstm = nn.LSTM(input_size=glove.shape[1], hidden_size=hidden_dim, num_layers=L, bidirectional=True, batch_first=True)
         def init_weights(m):
