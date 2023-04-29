@@ -767,3 +767,23 @@ class Glove_Dataset(Dataset):
             self.number_constituents2[idx],
 
         )
+class Glove_HOB(Dataset):
+    '''
+    Dataset with premise_dictionary functionality. 
+    '''
+    def __init__(self, X) -> None:
+        # Extracting Y and sentence keys
+        self.Y = [x[0] for x in X]        
+        # Extracting sentence 2 features
+        self.text2 = [x[2] for x in X]
+        
+    def __len__(self) -> int:
+        return len(self.Y)
+        
+    def __getitem__(self, idx: int):
+        # Returning all features for a given index
+        return (
+            self.Y[idx],
+            # Sentence 2 features
+            self.text2[idx]
+        )
