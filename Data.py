@@ -802,6 +802,6 @@ def read_data_HOB(df: pd.DataFrame) -> Tuple[List[List[Any]], dict, dict, dict]:
         label = line['gold_label']
       
         # add the line's data to the data list
-        data.append([label, text2)
+        data.append([label, text2)]
 
     return data
