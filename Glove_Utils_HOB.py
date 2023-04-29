@@ -1,3 +1,8 @@
+'''
+NOTEBOOK LINK:
+https://colab.research.google.com/drive/1JIa6kwBOf52GbHurKwoBt3e6Uc1E-BkQ#scrollTo=azKgay74du92
+'''
+
 from Modules import Hesyfu, Attn, masked_softmax
 from Modules import count_parameters
 import torch
