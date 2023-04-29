@@ -259,3 +259,16 @@ def log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_
         'val_acc_hard': val_accuracy_hard,
         'LR': optimizer.state_dict()['param_groups'][0]['lr'],
     })
+    
+def get_batch_sup_HOB(batch, device, hidden_dim, word_to_index):
+
+    #labels
+    labels_batch = torch.tensor([x[0] for x in batch], dtype=torch.float64, device=device)
+
+    sentences = [sample[1] for sample in batch]
+    batch_indices = sentences_to_indices(sentences, word_to_index)
+    padded_batch = pad_sequences(batch_indices,word_to_index['<PAD>'])
+    input_tensor2 = torch.tensor(padded_batch, dtype=torch.long).to(device)
+    indices = torch.tensor([x[2] for x in batch], dtype=torch.int64, device=device)
+    # Return the data
+    return labels_batch, input_tensor2, indices
