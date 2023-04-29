@@ -53,7 +53,7 @@ class Glove_HOB(nn.Module):
         return out
         
 def init_glove_HOB(hidden_dim, L, device, embedding_matrix, word_to_index):
-    model = Glove_Hesyfu(hidden_dim, L, device, embedding_matrix, word_to_index)
+    model = Glove_HOB(hidden_dim, L, device, embedding_matrix, word_to_index)
     params = count_parameters(model)
     return model, params
 
