@@ -683,7 +683,8 @@ class CA_Hesyfu(nn.Module):
         data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_batch1, mask_batch2)
 #         data1, data2 = self.co_attn(gcn_out1, gcn_out2, mask_all1, mask_all2)
         # Create final representation
-        final_representation = torch.cat((data1, data2, torch.abs(data1 - data2), torch.mul(data1, data2)), dim=1)
+#         final_representation = torch.cat((data1, data2, torch.abs(data1 - data2), torch.mul(data1, data2)), dim=1)
+        final_representation = torch.cat((data1, data2, data1 - data2, torch.mul(data1, data2)), dim=1)
         out = self.fc(final_representation)
 
         return out
