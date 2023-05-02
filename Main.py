@@ -147,14 +147,14 @@ val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, s
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 dataset_name = 'SNLI'
-run_name = "help_augment"
+run_name = "no_shuffling_2"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
 n_epochs = 2
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 3e-5
-lr_other = 5e-4
+lr_other = 1e-3
 
 if is_syntax_enhanced:
     optimizer_bert = torch.optim.AdamW(model.bert.parameters(), lr=learning_rate, eps=1e-8)
