@@ -206,7 +206,7 @@ for epc in range(n_epochs):
         train_losses.append(loss_batch)
         train_accuracies.append(accuracy_batch)
 
-        if i % 1000 == 0:
+        if i % 3000 == 0:
             print(f'evaluating batch nr:{i}')
             log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
             train_losses, train_accuracies = [], []
