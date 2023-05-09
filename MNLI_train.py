@@ -114,8 +114,8 @@ model needs dependency vocab and constituency vocabs
 np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-use_constGCN=True
-use_depGCN=False
+use_constGCN=False
+use_depGCN=True
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
 print(model)
