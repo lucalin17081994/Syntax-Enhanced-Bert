@@ -53,18 +53,18 @@ else:
 ## Unzip file from drive
 """
 
-from zipfile import ZipFile
+# from zipfile import ZipFile
 
-file_name = "SNLI_noHOB.zip"
-with ZipFile(file_name, 'r') as zipfile:
-    zipfile.printdir()
-    zipfile.extractall()
-file_name='MNLI_train.zip'
-# file_name = "SICK.zip"
+# file_name = "SNLI_noHOB.zip"
+# with ZipFile(file_name, 'r') as zipfile:
+#     zipfile.printdir()
+#     zipfile.extractall()
+# file_name='MNLI_train.zip'
+# # file_name = "SICK.zip"
 
-with ZipFile(file_name, 'r') as zipfile:
-    zipfile.printdir()
-    zipfile.extractall()
+# with ZipFile(file_name, 'r') as zipfile:
+#     zipfile.printdir()
+#     zipfile.extractall()
 
 # import pickle
 # #hardcoding to ensure every vocab is the same
