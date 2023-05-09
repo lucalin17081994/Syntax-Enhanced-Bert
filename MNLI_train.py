@@ -176,7 +176,7 @@ else:
                                           warmup_steps=int(len(train_dataloader) / 10),
                                           t_total=len(train_dataloader) * n_epochs)
     optimizer_other=None
-!pip install wandb -Uq
+    
 import wandb
 wandb.login(key = 'a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
 run = wandb.init(project=run_name)
