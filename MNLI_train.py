@@ -12,14 +12,6 @@ https://github.com/lucalin17081994/Syntax-Enhanced-Bert
 # Imports + GPU setup
 """
 
-# Commented out IPython magic to ensure Python compatibility.
-!pip install transformers
-!apt-get install git
-!git clone https://github.com/lucalin17081994/Syntax-Enhanced-Bert/
-# %cd Syntax-Enhanced-Bert
-!git pull
-!pip install pandas --upgrade
-
 import Modules
 from Modules import CA_Hesyfu, initialize_model, WarmupLinearSchedule
 import Data
@@ -163,7 +155,7 @@ run_name = "MNLI_experiments"
 batch_size = train_dataloader.batch_size
 n_epochs = 1
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 5e-5
+learning_rate = 3e-5
 lr_other = 1e-3
 
 if is_syntax_enhanced:
