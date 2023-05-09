@@ -111,9 +111,9 @@ print(len(w_c_to_idx), len(c_c_to_idx), len(dep_lb_to_idx))
 model needs dependency vocab and constituency vocabs
 """
 
-np.random.seed(42)
-torch.manual_seed(42)
-torch.cuda.manual_seed(42)
+np.random.seed(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 use_constGCN=False
 use_depGCN=True
 is_syntax_enhanced = use_constGCN or use_depGCN
