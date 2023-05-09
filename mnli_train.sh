@@ -15,4 +15,4 @@ pip install --upgrade pandas
 pip install wandb
 
 
-python Main.py
+python MNLI_train.py
