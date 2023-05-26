@@ -376,7 +376,7 @@ def compute_accuracy_batch(prediction, target):
     y_target = torch.argmax(target, dim=1)
     return (y_pred == y_target).float().mean().item()
 
-def train_batch(i, accumulation_steps,model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device, is_syntax_enhanced):
+def train_batch(i, accumulation_steps, dataloader_len, model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device, is_syntax_enhanced):
     model.train()
     
     # Unpack data
@@ -401,7 +401,7 @@ def train_batch(i, accumulation_steps,model, data_batch, loss_fn, optimizer, sch
 #         optimizer_other.step()
     # scheduler_other.step()
     # gradient accumulation logic
-    if (i + 1) % accumulation_steps == 0:
+    if (i + 1) % accumulation_steps == 0 or (i + 1 == dataloader_len):
         # Perform gradient clipping
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
