@@ -393,6 +393,7 @@ def train_batch(i, accumulation_steps, dataloader_len, model, data_batch, loss_f
     if is_syntax_enhanced:
         optimizer_other.zero_grad()
     loss = loss_fn(out, labels)
+    loss=loss/accumulation_steps
     loss.backward()
 #     torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
 #     optimizer.step()
@@ -412,5 +413,5 @@ def train_batch(i, accumulation_steps, dataloader_len, model, data_batch, loss_f
     # Compute accuracy
     accuracy_batch = compute_accuracy_batch(out, labels)
     
-    return loss.cpu().detach().numpy(), accuracy_batch
+    return loss.cpu().detach().numpy() * accumulation_steps, accuracy_batch
 
