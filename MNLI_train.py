@@ -134,7 +134,7 @@ torch.cuda.manual_seed(42)
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
 # help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
 # combined = ConcatDataset([train_dataset,help_dataset])
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=24, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=16, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
@@ -208,7 +208,7 @@ for epc in range(n_epochs):
         train_losses.append(loss_batch)
         train_accuracies.append(accuracy_batch)
 
-        if i % 4000 == 0:
+        if i % 5000 == 0:
             print(f'evaluating batch nr:{i}')
             log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
             train_losses, train_accuracies = [], []
