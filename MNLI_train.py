@@ -111,11 +111,11 @@ print(len(w_c_to_idx), len(c_c_to_idx), len(dep_lb_to_idx))
 model needs dependency vocab and constituency vocabs
 """
 
-np.random.seed(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
-use_constGCN=True
-use_depGCN=True
+np.random.seed(42)
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
+use_constGCN=False
+use_depGCN=False
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
 print(model)
@@ -134,7 +134,7 @@ torch.cuda.manual_seed(42)
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
 # help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
 # combined = ConcatDataset([train_dataset,help_dataset])
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=24, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=24, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
@@ -153,7 +153,7 @@ run_name = "MNLI_experiments"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
-n_epochs = 1
+n_epochs = 3
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 3e-5
 lr_other = 1e-3
@@ -208,7 +208,7 @@ for epc in range(n_epochs):
         train_losses.append(loss_batch)
         train_accuracies.append(accuracy_batch)
 
-        if i % 3000 == 0:
+        if i % 4000 == 0:
             print(f'evaluating batch nr:{i}')
             log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
             train_losses, train_accuracies = [], []
