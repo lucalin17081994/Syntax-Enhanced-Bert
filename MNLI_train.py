@@ -149,7 +149,7 @@ val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, s
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 dataset_name = 'MNLI'
-run_name = "MNLI_experiments"
+run_name = "MNLI_3_epochs"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
