@@ -196,7 +196,7 @@ wandb.watch(model)
 """## training pipeline"""
 
 train_losses, train_accuracies = [], []
-
+accumulation_steps = 2
 # start training
 for epc in range(n_epochs):
     model.to(device)
@@ -204,7 +204,7 @@ for epc in range(n_epochs):
     
     # iterate through dataloader
     for i, batch in enumerate(train_dataloader):
-        loss_batch, accuracy_batch = train_batch(model, batch, loss_fn, optimizer_bert, scheduler_bert, optimizer_other, device, is_syntax_enhanced)
+        loss_batch, accuracy_batch = train_batch(i,accumulation_steps,model, batch, loss_fn, optimizer_bert, scheduler_bert, optimizer_other, device, is_syntax_enhanced)
         train_losses.append(loss_batch)
         train_accuracies.append(accuracy_batch)
 
