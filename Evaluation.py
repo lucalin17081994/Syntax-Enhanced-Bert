@@ -376,7 +376,7 @@ def compute_accuracy_batch(prediction, target):
     y_target = torch.argmax(target, dim=1)
     return (y_pred == y_target).float().mean().item()
 
-def train_batch(i, accumulation_steps, dataloader_len, model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device, is_syntax_enhanced):
+def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_other, device, is_syntax_enhanced):
     model.train()
     
     # Unpack data
