@@ -393,22 +393,15 @@ def train_batch(i, accumulation_steps, dataloader_len, model, data_batch, loss_f
     if is_syntax_enhanced:
         optimizer_other.zero_grad()
     loss = loss_fn(out, labels)
-    loss=loss/accumulation_steps
     loss.backward()
-#     torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-#     optimizer.step()
-#     scheduler.step()
-#     if is_syntax_enhanced:
-#         optimizer_other.step()
-    # scheduler_other.step()
-    # gradient accumulation logic
-    if (i + 1) % accumulation_steps == 0 or (i + 1 == dataloader_len):
-        # Perform gradient clipping
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-        optimizer.step()
-        scheduler.step()
-        if is_syntax_enhanced:
-            optimizer_other.step()
+    
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+    optimizer.step()
+    scheduler.step()
+    if is_syntax_enhanced:
+        optimizer_other.step()
+    scheduler_other.step()
+    
     
     # Compute accuracy
     accuracy_batch = compute_accuracy_batch(out, labels)
