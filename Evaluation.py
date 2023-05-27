@@ -400,7 +400,7 @@ def train_batch(model, data_batch, loss_fn, optimizer, scheduler, optimizer_othe
     scheduler.step()
     if is_syntax_enhanced:
         optimizer_other.step()
-    scheduler_other.step()
+#     scheduler_other.step()
     
     
     # Compute accuracy
