@@ -114,7 +114,7 @@ model needs dependency vocab and constituency vocabs
 np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-use_constGCN=False
+use_constGCN=True
 use_depGCN=False
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -155,8 +155,8 @@ run_name = "MNLI_3_epochs"
 batch_size = train_dataloader.batch_size
 n_epochs = 3
 loss_fn = nn.CrossEntropyLoss()
-learning_rate = 2e-5
-lr_other = 1e-3
+learning_rate = 3e-5
+lr_other = 5e-4
 
 if is_syntax_enhanced:
     optimizer_bert = torch.optim.AdamW(model.bert.parameters(), lr=learning_rate, eps=1e-8)
@@ -169,7 +169,7 @@ if is_syntax_enhanced:
         {'params': model.fc.parameters()}
     ]
     optimizer_other = torch.optim.AdamW(other_para, lr=lr_other, eps=1e-8)
-    scheduler_other = torch.optim.lr_scheduler.MultiStepLR(optimizer_other, milestones=[1], gamma=0.1, verbose=False)
+    scheduler_other = torch.optim.lr_scheduler.MultiStepLR(optimizer_other, milestones=[2], gamma=0.1, verbose=False)
 else:     
     optimizer_bert = torch.optim.AdamW(model.parameters(), lr=learning_rate, eps=1e-8)
     scheduler_bert = WarmupLinearSchedule(optimizer_bert,
