@@ -138,7 +138,7 @@ torch.cuda.manual_seed(42)
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
 # help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
 # combined = ConcatDataset([train_dataset,help_dataset])
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=24, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
