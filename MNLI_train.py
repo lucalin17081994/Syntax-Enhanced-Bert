@@ -157,7 +157,7 @@ run_name = "MNLI_3_epochs"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
-n_epochs = 3
+n_epochs = 2
 loss_fn = nn.CrossEntropyLoss()
 learning_rate = 3e-5
 lr_other = 1e-3
@@ -173,7 +173,7 @@ if is_syntax_enhanced:
         {'params': model.fc.parameters()}
     ]
     optimizer_other = torch.optim.AdamW(other_para, lr=lr_other, eps=1e-8)
-    scheduler_other = torch.optim.lr_scheduler.MultiStepLR(optimizer_other, milestones=[2], gamma=0.1, verbose=False)
+    scheduler_other = torch.optim.lr_scheduler.MultiStepLR(optimizer_other, milestones=[1], gamma=0.1, verbose=False)
 else:     
     optimizer_bert = torch.optim.AdamW(model.parameters(), lr=learning_rate, eps=1e-8)
     scheduler_bert = WarmupLinearSchedule(optimizer_bert,
