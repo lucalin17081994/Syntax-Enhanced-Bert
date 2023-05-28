@@ -83,8 +83,8 @@ le.fit(['contradiction', 'entailment', 'neutral']) #hardcode so you know the enc
 # train_data=pd.read_pickle('SNLI_train_noHOB.pickle') #already one-hot-encoded
 train_data=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
 
-# Sort train by index
-train_data = train_data.sort_index()
+# # Sort train by index
+# train_data = train_data.sort_index()
 
 dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
