@@ -82,6 +82,10 @@ le.fit(['contradiction', 'entailment', 'neutral']) #hardcode so you know the enc
 # train_data=read_dropna_encode_dataframe('SNLI_train.pickle',le,True)#.head(1000)
 # train_data=pd.read_pickle('SNLI_train_noHOB.pickle') #already one-hot-encoded
 train_data=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
+
+# Sort train by index
+train_data = train_data.sort_index()
+
 dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
 
@@ -134,7 +138,7 @@ torch.cuda.manual_seed(42)
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
 # help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
 # combined = ConcatDataset([train_dataset,help_dataset])
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=24, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
