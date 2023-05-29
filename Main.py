@@ -126,9 +126,9 @@ model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 #re-seed. Init of model creates random parameters.
-np.random.seed(42)
-torch.manual_seed(42)
-torch.cuda.manual_seed(42)
+np.random.seed(0)
+torch.manual_seed(0)
+torch.cuda.manual_seed(0)
 
 # Create train dataloader
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
