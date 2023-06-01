@@ -81,10 +81,18 @@ le.fit(['contradiction', 'entailment', 'neutral']) #hardcode so you know the enc
 
 # train_data=read_dropna_encode_dataframe('SNLI_train.pickle',le,True)#.head(1000)
 # train_data=pd.read_pickle('SNLI_train_noHOB.pickle') #already one-hot-encoded
-train_data=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
+# train_data=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
+# MNLI, FeverNLI, ANLI, LingNLI, WaNLI
+df1=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
+df2=read_dropna_encode_dataframe('fever_train.pickle',le,False)
+df3=read_dropna_encode_dataframe('anli_train.pickle',le,False)
+df4=read_dropna_encode_dataframe('lingNLI_train.pickle',le,False)
+df5=read_dropna_encode_dataframe('waNLI_train.pickle',le,False)
 
-# # Sort train by index
-# train_data = train_data.sort_index()
+train_data= pd.concat([df1, df2, df3,df4, df5], axis=0, ignore_index=True)
+
+#drop columns
+train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 
 dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
@@ -211,7 +219,7 @@ for epc in range(n_epochs):
         train_losses.append(loss_batch)
         train_accuracies.append(accuracy_batch)
 
-        if i % 4000 == 0:
+        if i % 5000 == 0:
             print(f'evaluating batch nr:{i}')
             log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
             train_losses, train_accuracies = [], []
