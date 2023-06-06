@@ -93,7 +93,7 @@ df1=read_dropna_encode_dataframe('MNLI_train_noHOB.pickle',le,False, is_mnli=Tru
 # train_data= pd.concat([df1, df2, df3,df4, df5], axis=0, ignore_index=True)
 train_data=df1
 #drop columns
-train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+# train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 
 dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
