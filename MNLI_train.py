@@ -83,24 +83,28 @@ le.fit(['contradiction', 'entailment', 'neutral']) #hardcode so you know the enc
 # train_data=pd.read_pickle('SNLI_train_noHOB.pickle') #already one-hot-encoded
 # train_data=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
 # MNLI, FeverNLI, ANLI, LingNLI, WaNLI
-df1=read_dropna_encode_dataframe('MNLI_train_noHOB.pickle',le,False, is_mnli=True)
-# df1=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
-# df2=read_dropna_encode_dataframe('fever_train.pickle',le,False)
-# df3=read_dropna_encode_dataframe('anli_train.pickle',le,False)
-# df4=read_dropna_encode_dataframe('lingNLI_train.pickle',le,False)
-# df5=read_dropna_encode_dataframe('waNLI_train.pickle',le,False)
+# df1=read_dropna_encode_dataframe('MNLI_train_noHOB.pickle',le,False, is_mnli=True)
+df1=read_dropna_encode_dataframe('MNLI_train.pickle',le,False, is_mnli=True)
+df2=read_dropna_encode_dataframe('fever_train.pickle',le,False)
+df3=read_dropna_encode_dataframe('anli_train.pickle',le,False)
+df4=read_dropna_encode_dataframe('lingNLI_train.pickle',le,False)
+df5=read_dropna_encode_dataframe('waNLI_train.pickle',le,False)
 
-# train_data= pd.concat([df1, df2, df3,df4, df5], axis=0, ignore_index=True)
-train_data=df1
+train_data= pd.concat([df1, df2, df3,df4, df5], axis=0, ignore_index=True)
+# train_data=df1
 #drop columns
-# train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 
-dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
-dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
+dev_anli = read_dropna_encode_dataframe('anli_dev.pickle',le,False)
+dev_lingnli=read_dropna_encode_dataframe('lingnli_test.pickle',le,False)
+dev_wanli=read_dropna_encode_dataframe('wanli_test.pickle',le,False)
 
-# train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+# dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
+# dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
+dev_data = pd.concat([dev_anli, dev_lingnli, dev_wanli], axis=0, ignore_index=True)
+
 dev_data=dev_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
-dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+# dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 
 train, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
     train_data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, {}
@@ -110,14 +114,17 @@ print("train examples", len(train))
 dev, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
     dev_data, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
 )
-dev2, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
-    dev_data2, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
-)
+# dev2, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict = read_data_pandas_snli(
+#     dev_data2, w_c_to_idx, c_c_to_idx, dep_lb_to_idx, premises_dict
+# )
 
 print("dev examples", len(dev))
-print("dev2 examples", len(dev2))
+# print("dev2 examples", len(dev2))
 
 print(len(w_c_to_idx), len(c_c_to_idx), len(dep_lb_to_idx))
+print('w_c_to_idx', w_c_to_idx)
+print('c_c_to_idx',c_c_to_idx)
+print('dep_lb_to_idx',dep_lb_to_idx)
 
 """## Init model
 
@@ -127,7 +134,7 @@ model needs dependency vocab and constituency vocabs
 np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-use_constGCN=False
+use_constGCN=True
 use_depGCN=True
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -151,19 +158,19 @@ train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=24, shu
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
-val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=24, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create hard validation dataloader
-val_dataset2 = SNLI_Dataset(dev2, tokenizer, premises_dict)
-val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+# val_dataset2 = SNLI_Dataset(dev2, tokenizer, premises_dict)
+# val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 dataset_name = 'MNLI'
-# run_name = "MNLI_ANLI_FEVERNLI_WANLI_LINGNLI"
-run_name='MNLI_noHOB'
+run_name = "MNLI_ANLI_FEVERNLI_WANLI_LINGNLI"
+# run_name='MNLI_noHOB'
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
@@ -221,10 +228,10 @@ for epc in range(n_epochs):
         train_losses.append(loss_batch)
         train_accuracies.append(accuracy_batch)
 
-#         if i % 5000 == 0:
-#             print(f'evaluating batch nr:{i}')
-#             log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
-#             train_losses, train_accuracies = [], []
+        if i % 5000 == 0:
+            print(f'evaluating batch nr:{i}')
+            log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
+            train_losses, train_accuracies = [], []
             
     if is_syntax_enhanced:
         scheduler_other.step()
