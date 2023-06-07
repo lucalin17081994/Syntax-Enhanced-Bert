@@ -91,17 +91,21 @@ df4=read_dropna_encode_dataframe('lingNLI_train.pickle',le,False)
 df5=read_dropna_encode_dataframe('waNLI_train.pickle',le,False)
 
 train_data= pd.concat([df1, df2, df3,df4, df5], axis=0, ignore_index=True)
+#join text_sentence1 and text_sentence2 to check duplicates
+train_data['sentence12'] = train_data.apply(lambda row: ' '.join(row['text_sentence1'] + row['text_sentence2']), axis=1)
+#drop duplicates
+train_data = train_data.drop_duplicates(subset=['sentence12'], keep='last')
 # train_data=df1
 #drop columns
-train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
+train_data=train_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2', 'sentence12'],axis=1)
 
 dev_anli = read_dropna_encode_dataframe('anli_dev.pickle',le,False)
-dev_lingnli=read_dropna_encode_dataframe('lingnli_test.pickle',le,False)
-dev_wanli=read_dropna_encode_dataframe('wanli_test.pickle',le,False)
+# dev_lingnli=read_dropna_encode_dataframe('lingnli_test.pickle',le,False)
+dev_wanli=read_dropna_encode_dataframe('waNLI_test.pickle',le,False)
 
 # dev_data = read_dropna_encode_dataframe('SNLI_val.pickle',le,False)
 # dev_data2=read_dropna_encode_dataframe('SNLI_val_hard.pickle',le,False)
-dev_data = pd.concat([dev_anli, dev_lingnli, dev_wanli], axis=0, ignore_index=True)
+dev_data = pd.concat([dev_anli, dev_wanli], axis=0, ignore_index=True)
 
 dev_data=dev_data.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
 # dev_data2=dev_data2.drop(['sentence1', 'sentence2', 'pos_sentence1', 'pos_sentence2'],axis=1)
