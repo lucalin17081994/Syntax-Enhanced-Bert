@@ -5,7 +5,6 @@
 #SBATCH --partition=gpu
 #SBATCH --time=30:00:00
 
-ls
 module load 2021
 module load 2022
 module load PyTorch/1.12.0-foss-2022a-CUDA-11.7.0
