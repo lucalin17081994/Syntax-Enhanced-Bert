@@ -24,7 +24,7 @@ from Data import (
 )
 
 import Evaluation
-from Evaluation import log_eval_metrics,train_batch,log_eval_metrics_sick
+from Evaluation import log_eval_metrics,train_batch
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
