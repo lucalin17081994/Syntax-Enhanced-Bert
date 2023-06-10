@@ -250,6 +250,6 @@ run.log_artifact(artifact)
 
 print('last evaluation')
 model.to(device)
-log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
+log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
 run.finish()
 
