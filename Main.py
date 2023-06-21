@@ -126,15 +126,15 @@ model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 #re-seed. Init of model creates random parameters.
-np.random.seed(0)
-torch.manual_seed(0)
-torch.cuda.manual_seed(0)
+np.random.seed(42)
+torch.manual_seed(42)
+torch.cuda.manual_seed(42)
 
 # Create train dataloader
 train_dataset = SNLI_Dataset(train, tokenizer, premises_dict)
 # help_dataset = SNLI_Dataset(help,tokenizer,premises_dict)
 # combined = ConcatDataset([train_dataset,help_dataset])
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
+train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=32, shuffle=False, collate_fn=lambda batch: get_batch_sup(batch, device, dep_lb_to_idx, use_constGCN, use_depGCN))
 
 # Create validation dataloader
 val_dataset = SNLI_Dataset(dev, tokenizer, premises_dict)
@@ -147,7 +147,7 @@ val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, s
 """## wandb, hyperparameters, optimizers, schedulers"""
 
 dataset_name = 'SNLI'
-run_name = "SNLI_data_permutations"
+run_name = "SNLI_3runs"
 
 # Hyperparameters
 batch_size = train_dataloader.batch_size
@@ -208,7 +208,7 @@ for epc in range(n_epochs):
 
         if i % 3000 == 0:
             print(f'evaluating batch nr:{i}')
-            log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
+            log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb, is_syntax_enhanced)
             train_losses, train_accuracies = [], []
             
     if is_syntax_enhanced:
@@ -224,5 +224,5 @@ run.log_artifact(artifact)
 
 print('last evaluation')
 model.to(device)
-log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
+log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
 run.finish()
