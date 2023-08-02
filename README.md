@@ -9,6 +9,7 @@ Studying the effect of enhancing Bert-based models with syntax on the task of Na
 # Notes:
 - Organization into subfolders happened after I was done with the thesis. Some paths used in the .py or .ipynb files may need to be changed.
 - For logging to wandb, replace '...' with your own API key.
+- Snellius/HPC jobs are the .sh files. In total, there are three main .py files: SNLI dataset (Main.py), MNLI+other datasets (MNLI_train.py), and using glove embeddings (Glove.py) with a simpler bi-lstm model. SNLI and MNLI can probably be merged since they use the same model.
 
 # Abstract
 
