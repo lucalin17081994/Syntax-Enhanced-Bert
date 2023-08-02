@@ -407,7 +407,7 @@ val_hard_dataloader = torch.utils.data.DataLoader(val_dataset2, batch_size=32, s
 
 """## wandb, hyperparameters, optimizers, schedulers"""
 import wandb
-wandb.login(key='a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
+wandb.login(key='...')
 
 dataset_name = 'SNLI'
 run_name = "experiment_glove"
