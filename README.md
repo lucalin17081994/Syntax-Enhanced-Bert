@@ -3,10 +3,11 @@ Utrecht University Masters Thesis year 2022/2023
 
 Studying the effect of enhancing Bert-based models with syntax on the task of Natural Language Inference
 
-
 # Diagrams:
 [Data Flow View](Functional_view.drawio.pdf)
 
+# Notes:
+Organization into subfolders happened after I was done with the thesis. Some paths used in the .py or .ipynb files may need to be changed.
 
 # Abstract
 
