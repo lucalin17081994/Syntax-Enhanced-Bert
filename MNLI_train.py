@@ -203,7 +203,7 @@ else:
     optimizer_other=None
     
 import wandb
-wandb.login(key = 'a72edb442b6177a7198f045dee1e6b7c4de8f7a3')
+wandb.login(key = '...')
 run = wandb.init(project=run_name)
 model_name = model_name
 wandb.config.update({
