@@ -24,7 +24,7 @@ from Data import (
 )
 
 import Evaluation
-from Evaluation import log_eval_metrics,train_batch,log_eval_metrics_sick
+from Evaluation import log_eval_metrics,train_batch
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
@@ -138,7 +138,7 @@ model needs dependency vocab and constituency vocabs
 np.random.seed(42)
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-use_constGCN=True
+use_constGCN=False
 use_depGCN=True
 is_syntax_enhanced = use_constGCN or use_depGCN
 model, model_name = initialize_model(768,1, dep_lb_to_idx,w_c_to_idx,c_c_to_idx,device, use_constGCN=use_constGCN, use_depGCN=use_depGCN)
@@ -250,6 +250,6 @@ run.log_artifact(artifact)
 
 print('last evaluation')
 model.to(device)
-log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, val_hard_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
+log_eval_metrics(model, train_losses, train_accuracies, val_dataloader, loss_fn, optimizer_bert, optimizer_other, device, wandb,is_syntax_enhanced)
 run.finish()
 
