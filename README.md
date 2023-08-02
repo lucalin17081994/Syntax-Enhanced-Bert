@@ -7,7 +7,8 @@ Studying the effect of enhancing Bert-based models with syntax on the task of Na
 [Data Flow View](Functional_view.drawio.pdf)
 
 # Notes:
-Organization into subfolders happened after I was done with the thesis. Some paths used in the .py or .ipynb files may need to be changed.
+- Organization into subfolders happened after I was done with the thesis. Some paths used in the .py or .ipynb files may need to be changed.
+- For logging to wandb, replace '...' with your own API key.
 
 # Abstract
 
